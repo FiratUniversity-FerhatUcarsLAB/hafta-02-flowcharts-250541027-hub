@@ -1,0 +1,123 @@
+digraph ECommerceSystem {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // Düğümler
+    start [shape=oval, label="BAŞLA"];
+    login [shape=parallelogram, label="Kullanıcı girişi veya misafir seçimi"];
+    memberCheck [shape=diamond, label="Kullanıcı tipi = 'üye' ?"];
+    username [shape=parallelogram, label="Kullanıcı adı ve şifre oku"];
+    loginValid [shape=diamond, label="Giriş bilgileri doğru mu?"];
+    guest [shape=box, label="Misafir olarak devam et"];
+    exit1 [shape=oval, label="BİTİR"];
+
+    addProduct [shape=parallelogram, label="Ürün ID oku veya 'bitti' gir"];
+    doneAdd [shape=diamond, label="Ürün ekleme bitti mi?"];
+    amount [shape=parallelogram, label="Miktar oku"];
+    stockCheck [shape=diamond, label="Yeterli stok var mı?"];
+    addToCart [shape=box, label="Ürünü sepete ekle"];
+    stockFail [shape=box, label="Uyarı: Yetersiz stok"];
+    
+    showCart [shape=parallelogram, label="Sepeti görüntüle"];
+    updateAsk [shape=diamond, label="Miktar değiştirmek istiyor musun?"];
+    updateQty [shape=parallelogram, label="Yeni miktar oku"];
+    updateStock [shape=diamond, label="Stok yeterli mi?"];
+    updateDone [shape=box, label="Sepeti güncelle"];
+    updateFail [shape=box, label="Yetersiz stok, değişiklik yok"];
+
+    discountAsk [shape=diamond, label="İndirim kodu var mı?"];
+    discountCode [shape=parallelogram, label="Kod gir"];
+    discountValid [shape=diamond, label="Kod geçerli mi?"];
+    applyDiscount [shape=box, label="İndirim uygula"];
+    invalidDiscount [shape=box, label="Geçersiz kod"];
+
+    address [shape=parallelogram, label="Kargo adresini gir"];
+    shippingCalc [shape=box, label="Kargo ücreti hesapla"];
+    freeShip [shape=box, label="Ücretsiz kargo"];
+    payShip [shape=box, label="Kargo ücreti göster"];
+
+    taxCalc [shape=box, label="Vergi hesapla"];
+    totalShow [shape=parallelogram, label="Toplam tutarı göster"];
+
+    paymentSelect [shape=diamond, label="Ödeme yöntemi seçimi"];
+    card [shape=parallelogram, label="Kart bilgilerini gir"];
+    cardValid [shape=diamond, label="Ödeme onaylandı mı?"];
+    paymentFail [shape=box, label="Ödeme reddedildi"];
+    transfer [shape=box, label="Havale bilgisi göster"];
+    transferConfirm [shape=diamond, label="Havale onaylandı mı?"];
+    cash [shape=box, label="Kapıda ödeme seçildi"];
+
+    order [shape=box, label="Sipariş oluştur ve stok güncelle"];
+    receipt [shape=parallelogram, label="Makbuz ve bildirim gönder"];
+    end [shape=oval, label="BİTİR"];
+
+
+    // Akışlar
+    start -> login;
+    login -> memberCheck;
+
+    memberCheck -> username [label="EVET"];
+    memberCheck -> guest [label="HAYIR"];
+
+    username -> loginValid;
+    loginValid -> addProduct [label="EVET"];
+    loginValid -> exit1 [label="HAYIR"];
+
+    guest -> addProduct;
+
+    addProduct -> doneAdd;
+    doneAdd -> amount [label="HAYIR"];
+    doneAdd -> showCart [label="EVET"];
+
+    amount -> stockCheck;
+    stockCheck -> addToCart [label="EVET"];
+    stockCheck -> stockFail [label="HAYIR"];
+    addToCart -> addProduct;
+    stockFail -> addProduct;
+
+    showCart -> updateAsk;
+    updateAsk -> updateQty [label="EVET"];
+    updateAsk -> discountAsk [label="HAYIR"];
+
+    updateQty -> updateStock;
+    updateStock -> updateDone [label="EVET"];
+    updateStock -> updateFail [label="HAYIR"];
+    updateDone -> discountAsk;
+    updateFail -> discountAsk;
+
+    discountAsk -> discountCode [label="EVET"];
+    discountAsk -> address [label="HAYIR"];
+
+    discountCode -> discountValid;
+    discountValid -> applyDiscount [label="EVET"];
+    discountValid -> invalidDiscount [label="HAYIR"];
+    applyDiscount -> address;
+    invalidDiscount -> address;
+
+    address -> shippingCalc;
+    shippingCalc -> freeShip [label="Ücret=0"];
+    shippingCalc -> payShip [label="Ücret>0"];
+    freeShip -> taxCalc;
+    payShip -> taxCalc;
+
+    taxCalc -> totalShow;
+    totalShow -> paymentSelect;
+
+    paymentSelect -> card [label="Kredi Kartı"];
+    paymentSelect -> transfer [label="Havale"];
+    paymentSelect -> cash [label="Kapıda Ödeme"];
+
+    card -> cardValid;
+    cardValid -> order [label="EVET"];
+    cardValid -> paymentFail [label="HAYIR"];
+    paymentFail -> end;
+
+    transfer -> transferConfirm;
+    transferConfirm -> order [label="EVET"];
+    transferConfirm -> end [label="HAYIR"];
+
+    cash -> order;
+
+    order -> receipt;
+    receipt -> end;
+}
