@@ -1,0 +1,82 @@
+digraph ATM_ParaCekme {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // --- Şekil stilleri ---
+    start [shape=oval, label="BAŞLA"];
+    end [shape=oval, label="BİTİR"];
+
+    // PIN doğrulama
+    read_pin [shape=parallelogram, label="PIN Giriniz"];
+    check_pin [shape=diamond, label="PIN Doğru mu?"];
+    wrong_pin [shape=box, label="Hatalı PIN -> Deneme +1"];
+    try_again [shape=diamond, label="3 Haktan Az Mı?"];
+    card_blocked [shape=box, label="Kart Bloke"];
+    stop_after_block [shape=parallelogram, label="Kart Bloke Mesajı"];
+
+    // Para çekme işlemi
+    withdraw_loop [shape=diamond, label="İşlem Yapmak İster Misiniz?"];
+    read_amount [shape=parallelogram, label="Tutar Giriniz (20 TL Katı)"];
+    check_positive [shape=diamond, label="Tutar > 0?"];
+    check_multiple [shape=diamond, label="20 TL Katı mı?"];
+    check_daily_limit [shape=diamond, label="Günlük Limit Aşılıyor mu?"];
+    check_balance [shape=diamond, label="Yeterli Bakiye Var mı?"];
+    confirm [shape=diamond, label="İşlemi Onaylıyor musunuz?"];
+    perform_withdraw [shape=box, label="Bakiye -= Tutar\nGünlükÇekim += Tutar"];
+    give_cash [shape=parallelogram, label="Parayı Ver\nYeni Bakiye Yazdır"];
+    ask_receipt [shape=diamond, label="Makbuz İster misiniz?"];
+    print_receipt [shape=parallelogram, label="Makbuz Yazdır"];
+    cancel [shape=box, label="İşlem İptal Edildi"];
+    another [shape=diamond, label="Başka İşlem İster misiniz?"];
+    thanks [shape=parallelogram, label="Teşekkür Mesajı"];
+
+    // --- Akışlar ---
+    start -> read_pin;
+    read_pin -> check_pin;
+
+    check_pin -> withdraw_loop [label="Evet"];
+    check_pin -> wrong_pin [label="Hayır"];
+
+    wrong_pin -> try_again;
+    try_again -> read_pin [label="Evet"];
+    try_again -> card_blocked [label="Hayır"];
+
+    card_blocked -> stop_after_block -> end;
+
+    // İşlem döngüsü
+    withdraw_loop -> read_amount [label="Evet"];
+    withdraw_loop -> end [label="Hayır"];
+
+    read_amount -> check_positive;
+    check_positive -> check_multiple [label="Evet"];
+    check_positive -> read_amount [label="Hayır"];
+
+    check_multiple -> check_daily_limit [label="Evet"];
+    check_multiple -> read_amount [label="Hayır"];
+
+    check_daily_limit -> check_balance [label="Hayır"];
+    check_daily_limit -> read_amount [label="Evet (limit aşıldı)"];
+
+    check_balance -> confirm [label="Evet"];
+    check_balance -> read_amount [label="Hayır (yetersiz bakiye)"];
+
+    confirm -> perform_withdraw [label="Evet"];
+    confirm -> cancel [label="Hayır"];
+
+    perform_withdraw -> give_cash;
+    give_cash -> ask_receipt;
+
+    ask_receipt -> print_receipt [label="Evet"];
+    ask_receipt -> another [label="Hayır"];
+    print_receipt -> another;
+
+    cancel -> another;
+
+    another -> withdraw_loop [label="Evet"];
+    another -> thanks [label="Hayır"];
+
+    thanks -> end;
+
+    // Görsel düzen
+    {rank = same; read_pin; wrong_pin; try_again;}
+}
