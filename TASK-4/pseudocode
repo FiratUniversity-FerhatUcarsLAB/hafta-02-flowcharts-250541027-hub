@@ -1,0 +1,168 @@
+BAŞLA
+  // ----------------------------------------------------
+  // 1. VERİ YAPILARI VE BAŞLANGIÇ TANIMLAMALARI
+  // ----------------------------------------------------
+  // Simüle edilmiş veritabanı kayıtları
+  tanımla OGRENCILER_VERITABANI = [
+    {no: "101", sifre: "123", ad: "Ahmet Yılmaz", gpa: 3.20, basariliDersler: ["MAT101", "FIZ101"]},
+    {no: "102", sifre: "456", ad: "Zeynep Kaya", gpa: 2.45, basariliDersler: ["KIM101"]}
+  ]
+  
+  tanımla ACILAN_DERSLER_VERITABANI = [
+    {kod: "BIL202", ad: "Veri Yapıları", kredi: 6, kontenjan: 50, kayitli: 48, onKosul: "BIL101", program: "Pzt 09:00"},
+    {kod: "FIZ102", ad: "Fizik II", kredi: 6, kontenjan: 70, kayitli: 70, onKosul: "FIZ101", program: "Salı 13:00"},
+    {kod: "MAT201", ad: "Diferansiyel Denklemler", kredi: 6, kontenjan: 60, kayitli: 55, onKosul: "MAT101", program: "Pzt 09:00"},
+    {kod: "TAR101", ad: "Tarih", kredi: 4, kontenjan: 100, kayitli: 90, onKosul: YOK, program: "Çar 11:00"}
+  ]
+
+  // Oturum değişkenleri
+  tanımla mevcutOgrenci = boş
+  tanımla dersSepeti = [] // Öğrencinin seçtiği derslerin listesi
+  tanımla toplamKredi = 0
+  tanımla MAKSIMUM_KREDI = 35
+
+  // ----------------------------------------------------
+  // 2. ÖĞRENCİ GİRİŞİ
+  // ----------------------------------------------------
+  GİRİŞ AL: "Öğrenci No: ", girilenNo
+  GİRİŞ AL: "Şifre: ", girilenSifre
+  
+  mevcutOgrenci = VeritabanındanOgrenciBul(girilenNo, girilenSifre, OGRENCILER_VERITABANI)
+  
+  EĞER (mevcutOgrenci == boş)
+    YAZDIR "Hatalı öğrenci numarası veya şifre. Sistemden çıkılıyor."
+    BİTİR
+  DEĞİLSE
+    YAZDIR "Hoş geldiniz, " + mevcutOgrenci.ad
+  SON EĞER
+  
+  // ----------------------------------------------------
+  // 3. DERS EKLEME / ÇIKARMA ANA DÖNGÜSÜ
+  // ----------------------------------------------------
+  tanımla kayitIslemiDevamEdiyor = DOĞRU
+  DÖNGÜ (kayitIslemiDevamEdiyor == DOĞRU)
+    
+    // Ders listesini her seferinde göster (döngü gereksinimi)
+    YAZDIR "\n--- AÇILAN DERSLER ---"
+    İÇİN her ders ACILAN_DERSLER_VERITABANI içinde:
+      YAZDIR ders.kod + " | " + ders.ad + " | Kredi: " + ders.kredi + " | Kontenjan: " + ders.kayitli + "/" + ders.kontenjan
+    SON İÇİN
+    
+    YAZDIR "\n--- SEPETİNİZ ---"
+    EĞER (dersSepeti boş)
+      YAZDIR "Sepetiniz boş."
+    DEĞİLSE
+      İÇİN her sepetDersi dersSepeti içinde:
+        YAZDIR sepetDersi.kod + " - " + sepetDersi.ad
+      SON İÇİN
+    SON EĞER
+    YAZDIR "Toplam Kredi: " + toplamKredi + "/" + MAKSIMUM_KREDI
+    
+    // Kullanıcıya seçenekleri sun
+    YAZDIR "\n--- İŞLEMLER ---"
+    YAZDIR "1- Ders Ekle"
+    YAZDIR "2- Ders Çıkar"
+    YAZDIR "3- Kaydı Tamamla ve Onayla"
+    GİRİŞ AL: "Seçiminiz: ", secim
+    
+    // SEÇİM DURUMU (secim)
+    SEÇİM DURUMU secim:
+      DURUM '1': // Ders Ekleme
+        GİRİŞ AL: "Eklemek istediğiniz dersin kodunu girin: ", eklenecekKod
+        secilenDers = VeritabanındanDersBul(eklenecekKod, ACILAN_DERSLER_VERITABANI)
+        
+        EĞER (secilenDers != boş)
+          // ----------------------------------------------------
+          // 3a. DERS EKLEME KOŞULLARI KONTROLÜ
+          // ----------------------------------------------------
+          
+          // Koşul 1: Kontenjan Kontrolü
+          EĞER (secilenDers.kayitli >= secilenDers.kontenjan)
+            YAZDIR "HATA: " + secilenDers.ad + " dersinin kontenjanı dolmuştur."
+          
+          // Koşul 2: Ön Koşul Kontrolü
+          DEĞİLSE EĞER (secilenDers.onKosul != YOK VE mevcutOgrenci.basariliDersler listesi secilenDers.onKosul'u İÇERMİYOR)
+            YAZDIR "HATA: Bu dersi almak için '" + secilenDers.onKosul + "' dersini geçmiş olmalısınız."
+          
+          // Koşul 3: Zaman Çakışması Kontrolü
+          DEĞİLSE EĞER (ZamanCakismasiVarMi(secilenDers, dersSepeti) == DOĞRU)
+            YAZDIR "HATA: Bu ders, sepetinizdeki başka bir dersle çakışmaktadır."
+          
+          // Koşul 4: Kredi Limiti Kontrolü
+          DEĞİLSE EĞER (toplamKredi + secilenDers.kredi > MAKSIMUM_KREDI)
+            YAZDIR "HATA: Bu dersi eklerseniz maksimum kredi limitini (" + MAKSIMUM_KREDI + ") aşıyorsunuz."
+
+          // Tüm koşullar başarılıysa
+          DEĞİLSE 
+            dersSepeti.Ekle(secilenDers)
+            toplamKredi = toplamKredi + secilenDers.kredi
+            YAZDIR "BAŞARILI: " + secilenDers.ad + " dersi sepetinize eklendi."
+          SON EĞER
+        DEĞİLSE
+          YAZDIR "HATA: Geçersiz ders kodu girdiniz."
+        SON EĞER
+        KIR
+        
+      DURUM '2': // Ders Çıkarma
+        GİRİŞ AL: "Çıkarmak istediğiniz dersin kodunu girin: ", cikarilacakKod
+        cikarilacakDers = SepettenDersBul(cikarilacakKod, dersSepeti)
+        
+        EĞER (cikarilacakDers != boş)
+          dersSepeti.Cikar(cikarilacakDers)
+          toplamKredi = toplamKredi - cikarilacakDers.kredi
+          YAZDIR "BAŞARILI: " + cikarilacakDers.ad + " dersi sepetinizden çıkarıldı."
+        DEĞİLSE
+          YAZDIR "HATA: Bu ders sepetinizde bulunmuyor."
+        SON EĞER
+        KIR
+        
+      DURUM '3': // Kaydı Tamamlama
+        // ----------------------------------------------------
+        // 4. KAYIT ÖZETİ VE SON ONAY
+        // ----------------------------------------------------
+        YAZDIR "\n--- KAYIT ÖZETİ ---"
+        İÇİN her sepetDersi dersSepeti içinde:
+          YAZDIR sepetDersi.kod + " - " + sepetDersi.ad
+        SON İÇİN
+        YAZDIR "Toplam Kredi: " + toplamKredi
+        
+        // Koşul 5: Danışman Onayı Gerekli mi?
+        EĞER (mevcutOgrenci.gpa < 2.5)
+          YAZDIR "UYARI: GPA'nız 2.5 altında olduğu için kaydınız danışman onayına gönderilecektir."
+        DEĞİLSE
+          YAZDIR "Kaydınız doğrudan kesinleşecektir."
+        SON EĞER
+        
+        GİRİŞ AL: "Bu şekilde kaydı onaylıyor musunuz? (E/H): ", onayCevabi
+        EĞER (onayCevabi.BüyükHarfeÇevir() == "E")
+          YAZDIR "Ders kaydınız başarıyla tamamlanmıştır."
+          kayitIslemiDevamEdiyor = YANLIŞ // Ana döngüyü sonlandır
+        DEĞİLSE
+          YAZDIR "İşlem iptal edildi. Ders seçimine geri dönülüyor."
+        SON EĞER
+        KIR
+        
+      VARSAYILAN:
+        YAZDIR "Geçersiz seçim. Lütfen 1, 2 veya 3 giriniz."
+        KIR
+        
+    SON SEÇİM
+    
+  SON DÖNGÜ // Ana işlem döngüsü sonu
+  
+  YAZDIR "\nSistemden çıkılıyor. İyi günler."
+BİTİR
+
+
+// ====================================================
+//                 YARDIMCI İŞLEVLER (FONKSİYONLAR)
+// ====================================================
+
+İŞLEV ZamanCakismasiVarMi(yeniDers, sepet):
+  İÇİN her sepetDersi sepet içinde:
+    EĞER (yeniDers.program == sepetDersi.program)
+      DÖNDÜR DOĞRU // Çakışma var
+    SON EĞER
+  SON İÇİN
+  DÖNDÜR YANLIŞ // Çakışma yok
+SON İŞLEV
