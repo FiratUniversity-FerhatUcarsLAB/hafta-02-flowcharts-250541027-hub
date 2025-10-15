@@ -1,0 +1,132 @@
+digraph HastaneSistemi {
+    // Genel Ayarlar
+    graph [fontname="Arial", fontsize=12, rankdir="TB", splines=ortho];
+    node [fontname="Arial", fontsize=10, shape=box, style=rounded];
+    edge [fontname="Arial", fontsize=9];
+
+    // Başlangıç ve Bitiş Düğümleri
+    Start [label="Başla", shape=ellipse, style=filled, fillcolor="#cde4ff"];
+    End [label="Bitir\nSağlıklı Günler Dileriz", shape=ellipse, style=filled, fillcolor="#ffc0cb"];
+
+    // Ana Akış Düğümleri
+    Baska_Islem_Sorgula [label="Başka Bir İşlem Yapmak\nİster misiniz?", shape=diamond, style=filled, fillcolor=lightyellow];
+
+    // Başlangıç Bağlantısı
+    Start -> Giris_TCKN_Al;
+
+    // ------------------------------------
+    // GİRİŞ MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Giris {
+        label = "1. Kimlik Doğrulama Modülü";
+        style = "filled";
+        fillcolor = "#f0f0f0";
+
+        Giris_TCKN_Al [label="T.C. Kimlik Numarası Gir"];
+        Giris_Format_Kontrol [label="TCKN Formatı\nGeçerli mi?\n(11 Hane, Rakam)", shape=diamond];
+        Giris_DB_Kontrol [label="Kullanıcı Veritabanında\nVar mı?", shape=diamond];
+        Giris_Hak_Kontrol [label="Giriş Hakkı > 0 ?", shape=diamond];
+        Giris_Basarisiz [label="Giriş Hakkınız Doldu\nSistemden Çıkılıyor"];
+
+        Giris_TCKN_Al -> Giris_Format_Kontrol;
+        Giris_Format_Kontrol -> Giris_TCKN_Al [label="Hayır"];
+        Giris_Format_Kontrol -> Giris_DB_Kontrol [label="Evet"];
+        Giris_DB_Kontrol -> Giris_Hak_Kontrol [label="Hayır, Kullanıcı Yok"];
+        Giris_Hak_Kontrol -> Giris_TCKN_Al [label="Evet"];
+        Giris_Hak_Kontrol -> Giris_Basarisiz [label="Hayır"];
+        Giris_Basarisiz -> End;
+    }
+
+    // ------------------------------------
+    // ANA MENÜ MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Menu {
+        label = "2. Ana Menü";
+        style = "filled";
+        fillcolor = "#e3f2fd";
+
+        Menu_Goster [label="Ana Menüyü Göster\n1- Randevu\n2- Tahlil\n3- Çıkış"];
+        Menu_Secim_Yap [label="İşlem Seçimi", shape=diamond];
+
+        Menu_Goster -> Menu_Secim_Yap;
+        Menu_Secim_Yap -> Menu_Goster [label="Geçersiz Seçim"];
+        Menu_Secim_Yap -> End [label="3: Çıkış"];
+    }
+
+    // Giriş başarılıysa Ana Menü'ye geç
+    Giris_DB_Kontrol -> Menu_Goster [label="Evet, Hoş Geldiniz"];
+
+
+    // ------------------------------------
+    // RANDEVU MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Randevu {
+        label = "3. Randevu Alma Modülü";
+        style = "filled";
+        fillcolor = "#e8f5e9";
+
+        Randevu_Pol_Listele [label="Poliklinikleri Listele"];
+        Randevu_Pol_Sec [label="Poliklinik Seçimi", shape=diamond];
+        Randevu_Doktor_Listele [label="Doktorları Listele"];
+        Randevu_Doktor_Sec [label="Doktor Seçimi", shape=diamond];
+        Randevu_Saat_Listele [label="Uygun Tarih ve\nSaatleri Göster/Gezin"];
+        Randevu_Saat_Sec [label="Saat Seçimi", shape=diamond];
+        Randevu_Onayla [label="Randevu Bilgilerini Özetle\nve Onay İste", shape=diamond];
+        Randevu_Kaydet [label="Randevuyu Kaydet\nve SMS Gönder"];
+
+        Randevu_Pol_Listele -> Randevu_Pol_Sec;
+        Randevu_Pol_Sec -> Randevu_Doktor_Listele [label="Geçerli Poliklinik"];
+        Randevu_Doktor_Listele -> Randevu_Doktor_Sec;
+        Randevu_Doktor_Sec -> Randevu_Saat_Listele [label="Geçerli Doktor"];
+        Randevu_Saat_Listele -> Randevu_Saat_Sec;
+        Randevu_Saat_Sec -> Randevu_Onayla [label="Saat Seçildi"];
+        Randevu_Onayla -> Randevu_Kaydet [label="Onayla"];
+        Randevu_Kaydet -> Baska_Islem_Sorgula;
+
+        // Geri Dönme Okları
+        Randevu_Pol_Sec -> Menu_Goster [label="0: Ana Menüye Dön"];
+        Randevu_Doktor_Sec -> Randevu_Pol_Listele [label="0: Poliklinik Seçimine Dön"];
+        Randevu_Saat_Sec -> Randevu_Doktor_Listele [label="0: Doktor Seçimine Dön"];
+        Randevu_Onayla -> Randevu_Pol_Listele [label="2: Değişiklik Yap"];
+        Randevu_Onayla -> Menu_Goster [label="3: İptal Et"];
+    }
+
+    // ------------------------------------
+    // TAHLİL MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Tahlil {
+        label = "4. Tahlil Sonuç Modülü";
+        style = "filled";
+        fillcolor = "#fff3e0";
+
+        Tahlil_Kayit_Kontrol [label="Hastanın Tahlil Kaydı\nVar mı?", shape=diamond];
+        Tahlil_Listele [label="Tahlilleri Durumlarıyla\nBirlikte Listele"];
+        Tahlil_Sec [label="Tahlil Seçimi", shape=diamond];
+        Tahlil_Sonuc_Hazir_Mi [label="Seçilen Tahlilin Sonucu\nHazır mı?", shape=diamond];
+        Tahlil_Goruntule [label="Tahlil Sonucunu\nGörüntüle"];
+        Tahlil_PDF_Sor [label="PDF Olarak\nİndirilsin mi?", shape=diamond];
+        Tahlil_PDF_Indir [label="Sonuçları PDF Olarak\nOluştur ve İndir"];
+        
+        Tahlil_Kayit_Kontrol -> Tahlil_Listele [label="Evet"];
+        Tahlil_Listele -> Tahlil_Sec;
+        Tahlil_Sec -> Tahlil_Sonuc_Hazir_Mi [label="Geçerli Tahlil"];
+        Tahlil_Sonuc_Hazir_Mi -> Tahlil_Listele [label="Hayır, Bekleniyor"];
+        Tahlil_Sonuc_Hazir_Mi -> Tahlil_Goruntule [label="Evet, Hazır"];
+        Tahlil_Goruntule -> Tahlil_PDF_Sor;
+        Tahlil_PDF_Sor -> Tahlil_PDF_Indir [label="Evet"];
+        Tahlil_PDF_Sor -> Baska_Islem_Sorgula [label="Hayır"];
+        Tahlil_PDF_Indir -> Baska_Islem_Sorgula;
+        Tahlil_Sec -> Menu_Goster [label="0: Ana Menüye Dön"];
+    }
+    
+    // Modül Bağlantıları
+    Menu_Secim_Yap -> Randevu_Pol_Listele [label="1: Randevu"];
+    Menu_Secim_Yap -> Tahlil_Kayit_Kontrol [label="2: Tahlil"];
+    
+    Tahlil_Kayit_Kontrol -> Baska_Islem_Sorgula [label="Hayır, Kayıt Yok"];
+
+
+    // Ana Döngü Bağlantısı
+    Baska_Islem_Sorgula -> Menu_Goster [label="Evet"];
+    Baska_Islem_Sorgula -> End [label="Hayır"];
+}
