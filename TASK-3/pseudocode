@@ -1,0 +1,202 @@
+BAŞLA
+  // Ana Değişkenler
+  tanımla mevcutKullanici = boş
+  tanımla sistemCalisiyor = DOĞRU
+  
+  // 1. ANA SİSTEM DÖNGÜSÜ
+  DÖNGÜ (sistemCalisiyor == DOĞRU)
+    
+    // ----------------------------------------------------
+    // 1a. KİMLİK DOĞRULAMA VE GİRİŞ DÖNGÜSÜ
+    // ----------------------------------------------------
+    tanımla girisBasarili = YANLIŞ
+    tanımla girisHakki = 3
+    
+    DÖNGÜ (girisHakki > 0 VE girisBasarili == YANLIŞ)
+      
+      tanımla tcFormatDogru = YANLIŞ
+      tanımla girilenTC = ""
+      
+      // TC formatı doğru girilene kadar sor
+      TEKRARLA
+        GİRİŞ AL: "Lütfen T.C. Kimlik Numaranızı giriniz: ", girilenTC
+        EĞER (girilenTC 11 haneli VE sadece rakamlardan oluşuyor)
+          tcFormatDogru = DOĞRU
+        DEĞİLSE
+          YAZDIR "Hata: T.C. Kimlik Numarası 11 haneli ve rakamlardan oluşmalıdır."
+        SON EĞER
+      KADAR (tcFormatDogru == DOĞRU)
+      
+      // Veritabanı kontrolü
+      mevcutKullanici = Veritabanı_KullaniciBul(girilenTC)
+      
+      EĞER (mevcutKullanici != boş)
+        girisBasarili = DOĞRU
+        YAZDIR "Hoş geldiniz, " + mevcutKullanici.AdSoyad
+      DEĞİLSE
+        girisHakki = girisHakki - 1
+        YAZDIR "Bu T.C. Kimlik Numarasına sahip bir kayıt bulunamadı. Kalan deneme hakkınız: " + girisHakki
+      SON EĞER
+      
+    SON DÖNGÜ // Giriş deneme döngüsü sonu
+    
+    // Giriş başarısız olduysa ana döngüyü kır
+    EĞER (girisBasarili == YANLIŞ)
+      YAZDIR "Giriş hakkınız dolmuştur. Sistemden çıkılıyor."
+      sistemCalisiyor = YANLIŞ
+      DEVAM ET // Ana döngünün başına dön ve bitir
+    SON EĞER
+
+    // ----------------------------------------------------
+    // 2. ANA MENÜ VE İŞLEM SEÇİM DÖNGÜSÜ
+    // ----------------------------------------------------
+    tanımla anaMenüdenCik = YANLIŞ
+    DÖNGÜ (anaMenüdenCik == YANLIŞ)
+      
+      YAZDIR "\n--- ANA MENÜ ---"
+      YAZDIR "1- Randevu İşlemleri"
+      YAZDIR "2- Tahlil Sonuçları"
+      YAZDIR "3- Çıkış Yap"
+      GİRİŞ AL: "Lütfen yapmak istediğiniz işlemi seçin: ", anaSecim
+      
+      // SEÇİM DURUMU (anaSecim)
+      SEÇİM DURUMU anaSecim:
+        DURUM '1': // Randevu Modülü
+          İŞLEV_RandevuModulu()
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        DURUM '2': // Tahlil Modülü
+          İŞLEV_TahlilModulu()
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        DURUM '3': // Çıkış
+          sistemCalisiyor = YANLIŞ
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        VARSAYILAN:
+          YAZDIR "Geçersiz seçim. Lütfen menüden bir numara giriniz."
+      SON SEÇİM
+      
+    SON DÖNGÜ // Ana menü döngüsü sonu
+    
+    // Kullanıcı doğrudan "3- Çıkış Yap" seçmediyse tekrar sor
+    EĞER (sistemCalisiyor == DOĞRU)
+      tanımla gecerliCevap = YANLIŞ
+      TEKRARLA
+        GİRİŞ AL: "\nBaşka bir işlem yapmak ister misiniz? (E/H): ", devamCevabi
+        devamCevabi = devamCevabi.BüyükHarfeÇevir()
+        EĞER (devamCevabi == "E" VEYA devamCevabi == "H")
+          gecerliCevap = DOĞRU
+        DEĞİLSE
+          YAZDIR "Lütfen sadece 'E' veya 'H' giriniz."
+        SON EĞER
+      KADAR (gecerliCevap == DOĞRU)
+      
+      EĞER (devamCevabi == "H")
+        sistemCalisiyor = YANLIŞ
+      SON EĞER
+    SON EĞER
+    
+  SON DÖNGÜ // Ana sistem döngüsü sonu
+  
+  YAZDIR "Sistemden çıkıldı. Sağlıklı günler dileriz."
+BİTİR
+
+
+// ====================================================
+//                 İŞLEV (FONKSİYON) TANIMLARI
+// ====================================================
+
+İŞLEV İŞLEV_RandevuModulu():
+  tanımla randevuAkisiDevamEt = DOĞRU
+  
+  // 3a. Poliklinik Seçim Döngüsü
+  DÖNGÜ (randevuAkisiDevamEt == DOĞRU)
+    poliklinikler = Veritabanı_PoliklinikleriGetir()
+    YAZDIR "\n--- POLİKLİNİKLER ---"
+    Listele(poliklinikler)
+    YAZDIR "0- Ana Menüye Dön"
+    GİRİŞ AL: "Poliklinik seçiniz: ", poliklinikSecimi
+    
+    EĞER (poliklinikSecimi == "0")
+      randevuAkisiDevamEt = YANLIŞ
+      KIR
+    DEĞİLSE EĞER (poliklinikSecimi geçerli bir numara)
+      secilenPoliklinik = poliklinikler[poliklinikSecimi]
+      
+      // 3b. Doktor Seçim Döngüsü
+      tanımla doktoraGeriDon = YANLIŞ
+      TEKRARLA
+        doktorlar = Veritabanı_DoktorlarıGetir(secilenPoliklinik)
+        YAZDIR "\n--- DOKTORLAR ---"
+        Listele(doktorlar)
+        YAZDIR "0- Poliklinik Seçimine Geri Dön"
+        GİRİŞ AL: "Doktor seçiniz: ", doktorSecimi
+        
+        EĞER (doktorSecimi == "0")
+          doktoraGeriDon = DOĞRU // Üst döngüye (poliklinik) dönmek için
+        DEĞİLSE EĞER (doktorSecimi geçerli bir numara)
+          secilenDoktor = doktorlar[doktorSecimi]
+          // Tarih-Saat seçim işlevini çağır
+          randevuAlindi = İŞLEV_TarihSaatSec(secilenDoktor)
+          EĞER (randevuAlindi)
+            randevuAkisiDevamEt = YANLIŞ // Tüm randevu akışını bitir
+            doktoraGeriDon = DOĞRU // Doktor seçim döngüsünü bitir
+          SON EĞER
+        DEĞİLSE
+          YAZDIR "Geçersiz doktor seçimi."
+        SON EĞER
+      KADAR (doktoraGeriDon == DOĞRU)
+      
+    DEĞİLSE
+      YAZDIR "Geçersiz poliklinik seçimi."
+    SON EĞER
+  SON DÖNGÜ
+SON İŞLEV
+
+
+İŞLEV İŞLEV_TahlilModulu():
+  tahliller = Veritabanı_TahlilleriGetir(mevcutKullanici.TC)
+  
+  EĞER (tahliller boş)
+    YAZDIR "Adınıza kayıtlı tahlil bulunmamaktadır."
+    DÖNDÜR // Fonksiyondan çık
+  SON EĞER
+  
+  // 4b. Tahlil Seçim Döngüsü
+  tanımla tahlildenCik = YANLIŞ
+  DÖNGÜ (tahlildenCik == YANLIŞ)
+    YAZDIR "\n--- TAHLİL SONUÇLARI ---"
+    // Tahlilleri durumuyla listele
+    İÇİN her tahlil, indeks tahliller İÇİNDE:
+      YAZDIR (indeks+1) + "- " + tahlil.Ad + " (" + tahlil.Tarih + ") - Durum: " + tahlil.Durum
+    SON İÇİN
+    YAZDIR "0- Ana Menüye Dön"
+    GİRİŞ AL: "Görüntülemek istediğiniz tahlili seçin: ", tahlilSecimi
+    
+    EĞER (tahlilSecimi == "0")
+      tahlildenCik = DOĞRU
+    DEĞİLSE EĞER (tahlilSecimi geçerli bir numara)
+      secilenTahlil = tahliller[tahlilSecimi - 1]
+      
+      EĞER (secilenTahlil.Durum == "Sonuç Hazır")
+        YAZDIR "\n--- " + secilenTahlil.Ad + " SONUÇLARI ---"
+        YAZDIR secilenTahlil.Detaylar
+        
+        GİRİŞ AL: "Sonuçları PDF olarak indirmek ister misiniz? (E/H): ", pdfCevap
+        EĞER (pdfCevap.BüyükHarfeÇevir() == "E")
+          PDF_OlusturVeIndir(secilenTahlil)
+          YAZDIR "PDF başarıyla indirildi."
+        SON EĞER
+        tahlildenCik = DOĞRU // İşlem bitti, döngüden çık
+      DEĞİLSE
+        YAZDIR "Bu tahlilin sonucu henüz hazır değil. Lütfen başka bir tahlil seçin."
+      SON EĞER
+    DEĞİLSE
+      YAZDIR "Geçersiz seçim."
+    SON EĞER
+  SON DÖNGÜ
+SON İŞLEV
