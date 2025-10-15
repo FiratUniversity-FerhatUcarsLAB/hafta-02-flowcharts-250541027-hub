@@ -1,23 +1,28 @@
-digraph ECommerceSystem {
+digraph ECommerceSystem_Corrected {
+    charset="UTF-8";
     rankdir=TB;
     node [fontname="Arial", fontsize=10];
 
-    // Düğümler
+    // Başlangıç / Bitiş
     start [shape=oval, label="BAŞLA"];
+    end [shape=oval, label="BİTİR"];
+
+    // Giriş
     login [shape=parallelogram, label="Kullanıcı girişi veya misafir seçimi"];
     memberCheck [shape=diamond, label="Kullanıcı tipi = 'üye' ?"];
     username [shape=parallelogram, label="Kullanıcı adı ve şifre oku"];
     loginValid [shape=diamond, label="Giriş bilgileri doğru mu?"];
     guest [shape=box, label="Misafir olarak devam et"];
-    exit1 [shape=oval, label="BİTİR"];
 
+    // Ürün ekleme & stok
     addProduct [shape=parallelogram, label="Ürün ID oku veya 'bitti' gir"];
     doneAdd [shape=diamond, label="Ürün ekleme bitti mi?"];
     amount [shape=parallelogram, label="Miktar oku"];
     stockCheck [shape=diamond, label="Yeterli stok var mı?"];
     addToCart [shape=box, label="Ürünü sepete ekle"];
     stockFail [shape=box, label="Uyarı: Yetersiz stok"];
-    
+
+    // Sepet güncelleme
     showCart [shape=parallelogram, label="Sepeti görüntüle"];
     updateAsk [shape=diamond, label="Miktar değiştirmek istiyor musun?"];
     updateQty [shape=parallelogram, label="Yeni miktar oku"];
@@ -25,32 +30,33 @@ digraph ECommerceSystem {
     updateDone [shape=box, label="Sepeti güncelle"];
     updateFail [shape=box, label="Yetersiz stok, değişiklik yok"];
 
+    // İndirim
     discountAsk [shape=diamond, label="İndirim kodu var mı?"];
     discountCode [shape=parallelogram, label="Kod gir"];
     discountValid [shape=diamond, label="Kod geçerli mi?"];
     applyDiscount [shape=box, label="İndirim uygula"];
     invalidDiscount [shape=box, label="Geçersiz kod"];
 
+    // Kargo & vergi
     address [shape=parallelogram, label="Kargo adresini gir"];
     shippingCalc [shape=box, label="Kargo ücreti hesapla"];
     freeShip [shape=box, label="Ücretsiz kargo"];
     payShip [shape=box, label="Kargo ücreti göster"];
-
     taxCalc [shape=box, label="Vergi hesapla"];
     totalShow [shape=parallelogram, label="Toplam tutarı göster"];
 
+    // Ödeme
     paymentSelect [shape=diamond, label="Ödeme yöntemi seçimi"];
     card [shape=parallelogram, label="Kart bilgilerini gir"];
     cardValid [shape=diamond, label="Ödeme onaylandı mı?"];
     paymentFail [shape=box, label="Ödeme reddedildi"];
-    transfer [shape=box, label="Havale bilgisi göster"];
+    transfer [shape=parallelogram, label="Havale bilgisi göster"];
     transferConfirm [shape=diamond, label="Havale onaylandı mı?"];
     cash [shape=box, label="Kapıda ödeme seçildi"];
 
+    // Sipariş & bildirim
     order [shape=box, label="Sipariş oluştur ve stok güncelle"];
     receipt [shape=parallelogram, label="Makbuz ve bildirim gönder"];
-    end [shape=oval, label="BİTİR"];
-
 
     // Akışlar
     start -> login;
@@ -61,7 +67,7 @@ digraph ECommerceSystem {
 
     username -> loginValid;
     loginValid -> addProduct [label="EVET"];
-    loginValid -> exit1 [label="HAYIR"];
+    loginValid -> end [label="HAYIR"];
 
     guest -> addProduct;
 
@@ -110,7 +116,7 @@ digraph ECommerceSystem {
     card -> cardValid;
     cardValid -> order [label="EVET"];
     cardValid -> paymentFail [label="HAYIR"];
-    paymentFail -> end;
+    paymentFail -> totalShow [label="Tekrar dene / Başka yöntem seç"];
 
     transfer -> transferConfirm;
     transferConfirm -> order [label="EVET"];
