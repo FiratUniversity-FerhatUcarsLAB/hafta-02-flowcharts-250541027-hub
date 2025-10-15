@@ -1,0 +1,702 @@
+Sistem A¸cıklaması
+
+Hastanede randevu alma ve tahlil sonu¸clarına eri¸sim sistemini modelleyin.
+
+Sistem Gereksinimleri:
+
+Hasta kimlik do˘grulama (TC No)
+
+˙
+
+I¸slem se¸cimi: 1-Randevu Al, 2-Tahlil Sonucu G¨or (ko¸sul)
+
+Randevu mod¨ul¨u: Poliklinik se¸cimi, doktor listesi, uygun saatler
+
+(d¨ong¨u)
+
+Randevu onayı ve SMS g¨onderimi
+
+Tahlil mod¨ul¨u: Tahlil var mı kontrol¨u (ko¸sul)
+
+Sonu¸c hazır mı kontrol¨u (ko¸sul)
+
+Sonu¸c g¨or¨unt¨uleme veya bekleme mesajı
+
+Sonu¸cları PDF indir se¸cene˘gi
+
+Ba¸ska i¸slem yapmak ister misiniz? (d¨ong¨u)
+
+Harika bir sistem modelleme isteği. İstenen gereksinimlere uygun olarak hastane randevu ve tahlil sonuç sisteminin detaylı bir açıklamasını aşağıda bulabilirsiniz.
+
+Sistem Açıklaması: Hastane Randevu ve Tahlil Sonuç Sistemi
+Bu belge, hastaların T.C. Kimlik Numaralarını kullanarak kimlik doğrulaması yaptıktan sonra randevu almalarını ve mevcut tahlil sonuçlarına erişmelerini sağlayan entegre bir otomasyon sistemini modellemektedir.
+
+1. Genel Bakış ve Amaç
+Sistemin temel amacı, hastalar için randevu alma sürecini dijitalleştirerek kolaylaştırmak ve laboratuvar sonuçlarına hızlı, güvenli bir şekilde erişimlerini sağlamaktır. Bu sayede hastanenin operasyonel verimliliği artırılırken, hasta memnuniyeti de en üst düzeye çıkarılacaktır. Sistem, kullanıcı dostu bir arayüzle hastaları adım adım yönlendirir.
+
+2. Sistemin Adım Adım İşleyişi
+Sistem, ana bir döngü içerisinde çalışır ve kullanıcı "Hayır" seçeneğiyle çıkış yapana kadar devam eder.
+
+Adım 1: Giriş ve Kimlik Doğrulama
+
+Kullanıcı Eylemi: Sisteme giriş yapmak için T.C. Kimlik Numarasını girer.
+
+Sistem Süreci: Girilen T.C. Kimlik Numarası, hastane veritabanındaki hasta kayıtları ile karşılaştırılır.
+
+Başarılı Durum: T.C. Kimlik Numarası sistemde kayıtlı ise kullanıcı doğrulanır ve bir sonraki adıma geçirilir. Hastanın adı ve soyadı ile bir karşılama mesajı gösterilir ("Merhaba Ayşe Yılmaz, hoş geldiniz.").
+
+Başarısız Durum: T.C. Kimlik Numarası bulunamazsa, "Girilen T.C. Kimlik Numarasına sahip bir hasta bulunamadı. Lütfen kontrol edip tekrar deneyin." hatası verilir ve giriş ekranına geri dönülür.
+
+Adım 2: Ana Menü - İşlem Seçimi (Koşul Yapısı)
+
+Kullanıcıya iki seçenek sunulur:
+
+Randevu Al
+
+Tahlil Sonuçlarımı Gör
+
+Kullanıcının seçimine göre sistem ilgili modüle yönlendirme yapar. Bu, bir if-else veya switch-case koşul yapısıdır.
+
+Adım 3: Randevu Alma Modülü (Seçim 1 ise)
+
+3a. Poliklinik Seçimi: Sistem, veritabanından mevcut olan tüm aktif poliklinikleri (örn: Dahiliye, Göz Hastalıkları, Kardiyoloji vb.) listeler. Kullanıcı bu listeden bir poliklinik seçer.
+
+3b. Doktor ve Zaman Seçimi (Döngüsel Liste):
+
+Seçilen polikliniğe bağlı çalışan doktorların listesi kullanıcıya sunulur.
+
+Kullanıcı bir doktor seçtiğinde, sistem o doktorun en yakın tarihten başlayarak uygun randevu saatlerini (örn: 09:00, 09:15, 10:30) listeler. Bu liste, uygun saatlerin bir döngü ile ekrana yazdırılmasıyla oluşturulur.
+
+Kullanıcı listeden bir saat seçimi yapar.
+
+3c. Randevu Onayı ve SMS Gönderimi:
+
+Kullanıcıya seçtiği bilgileri içeren bir özet ekranı gösterilir: "Sayın [Hasta Adı], [Tarih] [Saat] için [Poliklinik Adı] polikliniğinden Dr. [Doktor Adı] adına randevunuzu onaylıyor musunuz? (E/H)".
+
+Kullanıcı "E" (Evet) seçeneğini seçerse:
+
+Randevu bilgisi veritabanına kaydedilir.
+
+Sistem, hastanın kayıtlı telefon numarasına randevu detaylarını içeren bir onay SMS'i gönderir. (Örn: "DEGERLI HASTAMIZ, ... HASTANESI ... POLIKLINIGINE DR. ... ADINA ... TARIH ... SAATLI RANDEVUNUZ OLUSTURULMUSTUR. SAGLIKLI GUNLER DILERIZ.")
+
+"Randevunuz başarıyla oluşturulmuştur." mesajı gösterilir.
+
+Kullanıcı "H" (Hayır) seçeneğini seçerse, randevu işlemi iptal edilir ve ana menüye dönülür.
+
+Adım 4: Tahlil Sonucu Görüntüleme Modülü (Seçim 2 ise)
+
+4a. Tahlil Varlığı Kontrolü (Koşul 1):
+
+Sistem, hastanın T.C. Kimlik Numarası ile ilişkili herhangi bir tahlil kaydı olup olmadığını veritabanından kontrol eder.
+
+Tahlil Yoksa: "Adınıza kayıtlı herhangi bir tahlil bulunmamaktadır." mesajı gösterilir ve "Başka işlem yapmak ister misiniz?" adımına geçilir.
+
+Tahlil Varsa: Bir sonraki kontrol adımına geçilir.
+
+4b. Sonuç Durumu Kontrolü (Koşul 2):
+
+Mevcut tahlillerin durumu ('Sonuç Hazır' veya 'Sonuç Bekleniyor') kontrol edilir.
+
+Sonuç Hazır Değilse: "Tahlil sonuçlarınız henüz hazırlanmamıştır. Lütfen daha sonra tekrar kontrol ediniz." mesajı gösterilir.
+
+Sonuç Hazırsa: Sonuçları görüntüleme adımına geçilir.
+
+4c. Sonuç Görüntüleme ve PDF İndirme:
+
+Hazır olan tahlil sonuçları ekranda listelenir (örn: Tahlil Adı, Sonuç, Referans Aralığı, Tarih).
+
+Ekranın altında kullanıcıya "Sonuçları PDF Olarak İndir" seçeneği sunulur.
+
+Kullanıcı bu seçeneği seçtiğinde, sistem tahlil sonuçlarını düzenli bir formatta PDF dosyası olarak oluşturur ve indirme işlemini başlatır.
+
+Adım 5: Başka İşlem Yapma Döngüsü
+
+Herhangi bir işlem tamamlandıktan sonra (randevu alındı, sonuç görüntülendi, hata mesajı alındı vb.) kullanıcıya şu soru sorulur:
+
+"Başka bir işlem yapmak ister misiniz? (E/H)"
+
+Cevap "E" (Evet) ise: Döngü devam eder ve kullanıcı Adım 2'deki Ana Menü'ye geri yönlendirilir.
+
+Cevap "H" (Hayır) ise: Döngü sonlanır, "İyi günler dileriz." mesajı gösterilir ve kullanıcının oturumu güvenli bir şekilde kapatılır.
+
+3. Akış Şeması (Pseudocode Olarak)
+BAŞLA
+  DÖNGÜ (islemYapilsinMi == EVET)
+    GİRİŞ: TC Kimlik Numarası al
+    KULLANICI = VeritabanındaKullanıcıyıBul(TCNo)
+
+    EĞER KULLANICI YOKSA
+      GÖSTER "Hasta bulunamadı."
+      DEVAM ET (Döngünün başına dön)
+    DEĞİLSE
+      GÖSTER "Hoş geldiniz, [Kullanıcı Adı]"
+      GÖSTER "1- Randevu Al"
+      GÖSTER "2- Tahlil Sonucu Gör"
+      GİRİŞ: secim
+
+      EĞER secim == 1
+        // Randevu Modülü
+        poliklinikler = VeritabanındanPoliklinikleriGetir()
+        GÖSTER poliklinikler
+        GİRİŞ: secilenPoliklinik
+
+        doktorlar = VeritabanındanDoktorlarıGetir(secilenPoliklinik)
+        GÖSTER doktorlar
+        GİRİŞ: secilenDoktor
+
+        saatler = VeritabanındanUygunSaatleriGetir(secilenDoktor)
+        GÖSTER saatler
+        GİRİŞ: secilenSaat
+
+        GÖSTER "Randevuyu onaylıyor musunuz? (E/H)"
+        GİRİŞ: onay
+        EĞER onay == 'E'
+          VeritabanınaRandevuKaydet(kullanıcı, doktor, saat)
+          SMS_Gonder(kullanıcı.telefon, "Randevunuz oluşturuldu...")
+          GÖSTER "Randevunuz başarıyla oluşturuldu."
+        DEĞİLSE
+          GÖSTER "İşlem iptal edildi."
+        SON EĞER
+
+      DEĞİLSE EĞER secim == 2
+        // Tahlil Modülü
+        tahliller = VeritabanındanTahlilleriGetir(kullanıcı)
+        EĞER tahliller YOKSA
+          GÖSTER "Adınıza kayıtlı tahlil bulunmamaktadır."
+        DEĞİLSE
+          EĞER tahlil.durum == 'Hazır'
+            GÖSTER tahlil.sonuclar
+            GÖSTER "Sonuçları PDF olarak indirmek ister misiniz? (E/H)"
+            GİRİŞ: pdfIstegi
+            EĞER pdfIstegi == 'E'
+              PDF_OlusturVeIndir(tahlil.sonuclar)
+            SON EĞER
+          DEĞİLSE
+            GÖSTER "Sonuçlarınız henüz hazır değil."
+          SON EĞER
+        SON EĞER
+      DEĞİLSE
+        GÖSTER "Geçersiz seçim."
+      SON EĞER
+    SON EĞER
+
+    GÖSTER "Başka bir işlem yapmak ister misiniz? (E/H)"
+    GİRİŞ: devamCevabi
+    EĞER devamCevabi == 'H'
+      islemYapilsinMi = HAYIR
+    SON EĞER
+  SON DÖNGÜ
+
+  GÖSTER "İyi günler dileriz."
+BİTİR
+
+daha kapsamlı bir döngü oluştur
+
+Elbette, istenen sistemi daha kapsamlı, kullanıcı dostu ve hatalara karşı daha dayanıklı hale getirecek iç içe geçmiş ve daha detaylı döngü yapılarıyla yeniden modelleyelim. Bu model, kullanıcının hatalı giriş yapması durumunda onu yönlendiren ve daha esnek seçenekler sunan bir yapıya odaklanacaktır.
+
+Kapsamlı Döngülerle Geliştirilmiş Sistem Açıklaması
+Bu model, hastane otomasyon sisteminin ana omurgasını oluşturan döngüleri daha sağlam ve etkileşimli hale getirerek kullanıcı deneyimini iyileştirmeyi hedefler. Sistem, bir ana işlem döngüsü içinde çalışır ve her modül kendi içinde alt doğrulama ve seçim döngüleri içerir.
+
+1. Ana Sistem Döngüsü ve Kimlik Doğrulama
+Sistemin tamamı, kullanıcı çıkış yapmayı seçene kadar devam eden bir ana döngü üzerine kuruludur.
+
+Adım 1: Kimlik Doğrulama ve Giriş Döngüsü
+
+Dış Döngü (Giriş Denemesi): Sisteme giriş için kullanıcıya 3 deneme hakkı tanınır.
+
+İç Döngü (Format Doğrulama): Kullanıcıdan T.C. Kimlik Numarası istenir.
+
+Koşul: Girilen veri 11 haneli ve tamamen rakamlardan mı oluşuyor?
+
+Hatalı Durum: Eğer format yanlışsa, "Lütfen 11 haneli T.C. Kimlik Numaranızı rakam kullanarak giriniz." uyarısı verilir ve iç döngü tekrar çalışır. Kullanıcı doğru formatı girene kadar bu döngü devam eder.
+
+Başarılı Durum: Format doğruysa, iç döngüden çıkılır.
+
+Veritabanı Kontrolü: Doğru formatta girilen T.C. Kimlik Numarası veritabanında kontrol edilir.
+
+Başarılı Durum: Kullanıcı bulunursa, giriş deneme döngüsü kırılır ve "Merhaba [Hasta Adı Soyadı], sisteme hoş geldiniz." mesajıyla ana menüye geçilir.
+
+Başarısız Durum: Kullanıcı bulunamazsa, "Bu T.C. Kimlik Numarasına sahip bir kayıt bulunamadı. Kalan deneme hakkınız: [X]" uyarısı verilir. 3 deneme hakkı da başarısız olursa, sistem güvenlik nedeniyle kendini kısa bir süreliğine kilitler veya sonlandırır.
+
+2. Ana Menü ve İşlem Seçim Döngüsü
+Kullanıcı başarıyla giriş yaptıktan sonra, geçerli bir işlem seçene kadar devam eden bir seçim döngüsüne girer.
+
+Döngü Başlangıcı:
+
+Kullanıcıya seçenekler sunulur:
+
+Randevu İşlemleri
+
+Tahlil Sonuçları
+
+Çıkış Yap
+
+Kullanıcıdan bir seçim yapması istenir.
+
+Koşul: Seçim 1, 2 veya 3 mü?
+
+Geçerli Seçim: İlgili modüle yönlendirilir.
+
+Geçersiz Seçim: "Lütfen geçerli bir seçenek giriniz (1, 2 veya 3)." uyarısı verilir ve döngü tekrar başlar. Kullanıcı geçerli bir seçim yapana kadar menü tekrar gösterilir.
+
+3. Randevu Modülü ve İç İçe Seçim Döngüleri
+Bu modül, kullanıcının adım adım seçim yapmasını ve istediği zaman bir önceki adıma dönebilmesini sağlayan iç içe döngülerden oluşur.
+
+3a. Poliklinik Seçim Döngüsü:
+
+Sistem, veritabanından poliklinikleri numaralandırarak listeler (1-Dahiliye, 2-Kardiyoloji vb.). Listenin sonuna "0- Bir Üst Menüye Dön" seçeneği eklenir.
+
+Kullanıcı geçerli bir poliklinik numarası veya 0 girene kadar döngü devam eder.
+
+Geçersiz girişte, "Lütfen listede bulunan bir numara giriniz." uyarısı verilir.
+
+0 seçilirse randevu modülünden çıkılır ve ana menüye dönülür.
+
+3b. Doktor Seçim Döngüsü:
+
+Seçilen polikliniğe ait doktorlar listelenir (1-Dr. Ahmet Yılmaz, 2-Dr. Zeynep Kaya vb.). Listenin sonuna "0- Poliklinik Seçimine Geri Dön" seçeneği eklenir.
+
+Kullanıcı geçerli bir doktor numarası veya 0 girene kadar döngü devam eder.
+
+0 seçilirse bir önceki adıma (poliklinik seçimine) geri dönülür.
+
+3c. Tarih ve Saat Seçim Döngüsü (En Kapsamlı Döngü):
+
+Tarih Gezinme Döngüsü:
+
+Sistem, seçilen doktor için bugünden başlayarak ilk uygun randevu saatlerini listeler.
+
+Kullanıcıya şu seçenekler sunulur:
+
+Listeden Bir Saat Seç
+
+Sonraki Günün Saatlerini Göster
+
+Önceki Günün Saatlerini Göster (Eğer bugünden sonraki bir tarihteyse)
+
+Doktor Seçimine Geri Dön
+
+Kullanıcı bir saat seçene kadar veya geri dönme kararı alana kadar bu döngüde kalır. Örneğin, "Sonraki Gün" seçildiğinde, sistem bir sonraki günün uygun saatlerini veritabanından çeker ve listeyi günceller. Bu yapı, kullanıcının takvimde esnek bir şekilde gezinmesini sağlar.
+
+Saat Seçim Onayı: Kullanıcı listeden bir saat seçtiğinde döngüden çıkılır.
+
+3d. Randevu Onay Döngüsü:
+
+Seçilen tüm bilgiler (Poliklinik, Doktor, Tarih, Saat) özet olarak gösterilir.
+
+Seçenekler: 1- Onayla, 2- Değişiklik Yap (Randevu Adımlarına Geri Dön), 3- İptal Et (Ana Menüye Dön)
+
+Geçerli bir seçim yapılana kadar döngü devam eder.
+
+Onaylanırsa: Randevu kaydedilir, SMS gönderilir ve "Randevunuz başarıyla oluşturuldu." mesajı verilir. Ardından ana işlem döngüsünün sonuna ("Başka işlem yapmak ister misiniz?") gidilir.
+
+4. Tahlil Modülü ve Sonuç Seçim Döngüsü
+4a. Tahlil Listeleme ve Durum Kontrolü:
+
+Sistem hastanın tüm tahlillerini (geçmiş ve güncel) veritabanından çeker.
+
+Koşul: Hiç tahlil kaydı yok mu?
+
+Evetse: "Adınıza kayıtlı tahlil bulunmamaktadır." mesajı gösterilir ve ana işlem döngüsünün sonuna gidilir.
+
+Hayırsa: Tahliller, durumlarıyla birlikte numaralandırılmış bir liste halinde sunulur:
+
+Tam Kan Sayımı (14.10.2025) - Sonuç Hazır
+
+Biyokimya (14.10.2025) - Sonuç Bekleniyor
+
+İdrar Tahlili (05.09.2025) - Sonuç Hazır 0. Ana Menüye Dön
+
+4b. Tahlil Seçim Döngüsü:
+
+Kullanıcıdan görüntülemek istediği tahlilin numarasını girmesi istenir.
+
+Geçerli bir numara (listede olan ve sonucu hazır olan) veya 0 girilene kadar döngü devam eder.
+
+Eğer sonucu beklenen bir tahlil seçilirse: "Bu tahlilin sonucu henüz hazır değildir. Lütfen listeden sonucu hazır olan bir tahlili seçiniz." uyarısı verilir.
+
+Eğer 0 seçilirse: Ana menüye dönülür.
+
+Geçerli ve sonucu hazır bir tahlil seçilirse:
+
+Sonuçlar detaylı olarak ekranda gösterilir.
+
+PDF İndirme Seçeneği: "Bu sonucu PDF olarak indirmek ister misiniz? (E/H)" sorusu sorulur. Kullanıcının cevabına göre PDF indirme işlemi başlatılır.
+
+5. Ana İşlem Döngüsünü Sonlandırma
+Her başarılı işlem (randevu alma, sonuç görme) veya iptal işleminden sonra, sistem ana döngünün sonuna gelir ve sorar:
+
+"Başka bir işlem yapmak ister misiniz? (E/H)"
+
+Döngü: Kullanıcı E, e, H veya h dışında bir giriş yaparsa, "Lütfen 'E' veya 'H' giriniz." uyarısı verilerek soru tekrarlanır.
+
+Cevap "E" ise: Ana döngü devam eder ve kullanıcı ana menüye yönlendirilir.
+
+Cevap "H" ise: Ana döngü sonlandırılır, "Sağlıklı günler dileriz." mesajı gösterilir ve sistemden çıkış yapılır.
+
+Bu kapsamlı döngü yapısı, sistemi daha akıllı, yönlendirici ve kullanıcı hatalarına karşı dirençli hale getirir.
+
+şimdi hazırladığın bu kapsamlı döngünün sözde kodunu oluştur
+
+Harika bir fikir. İşte bir önceki adımda detaylandırdığımız kapsamlı sistemin, programlama dillerinden bağımsız, mantıksal akışını gösteren sözde kodu (pseudocode).
+
+Bu sözde kod, iç içe döngüleri, geri dönme seçeneklerini ve kullanıcı hata yönetimini net bir şekilde göstermektedir.
+
+Kapsamlı Hastane Sistemi Sözde Kodu
+BAŞLA
+  // Ana Değişkenler
+  tanımla mevcutKullanici = boş
+  tanımla sistemCalisiyor = DOĞRU
+  
+  // 1. ANA SİSTEM DÖNGÜSÜ
+  DÖNGÜ (sistemCalisiyor == DOĞRU)
+    
+    // ----------------------------------------------------
+    // 1a. KİMLİK DOĞRULAMA VE GİRİŞ DÖNGÜSÜ
+    // ----------------------------------------------------
+    tanımla girisBasarili = YANLIŞ
+    tanımla girisHakki = 3
+    
+    DÖNGÜ (girisHakki > 0 VE girisBasarili == YANLIŞ)
+      
+      tanımla tcFormatDogru = YANLIŞ
+      tanımla girilenTC = ""
+      
+      // TC formatı doğru girilene kadar sor
+      TEKRARLA
+        GİRİŞ AL: "Lütfen T.C. Kimlik Numaranızı giriniz: ", girilenTC
+        EĞER (girilenTC 11 haneli VE sadece rakamlardan oluşuyor)
+          tcFormatDogru = DOĞRU
+        DEĞİLSE
+          YAZDIR "Hata: T.C. Kimlik Numarası 11 haneli ve rakamlardan oluşmalıdır."
+        SON EĞER
+      KADAR (tcFormatDogru == DOĞRU)
+      
+      // Veritabanı kontrolü
+      mevcutKullanici = Veritabanı_KullaniciBul(girilenTC)
+      
+      EĞER (mevcutKullanici != boş)
+        girisBasarili = DOĞRU
+        YAZDIR "Hoş geldiniz, " + mevcutKullanici.AdSoyad
+      DEĞİLSE
+        girisHakki = girisHakki - 1
+        YAZDIR "Bu T.C. Kimlik Numarasına sahip bir kayıt bulunamadı. Kalan deneme hakkınız: " + girisHakki
+      SON EĞER
+      
+    SON DÖNGÜ // Giriş deneme döngüsü sonu
+    
+    // Giriş başarısız olduysa ana döngüyü kır
+    EĞER (girisBasarili == YANLIŞ)
+      YAZDIR "Giriş hakkınız dolmuştur. Sistemden çıkılıyor."
+      sistemCalisiyor = YANLIŞ
+      DEVAM ET // Ana döngünün başına dön ve bitir
+    SON EĞER
+
+    // ----------------------------------------------------
+    // 2. ANA MENÜ VE İŞLEM SEÇİM DÖNGÜSÜ
+    // ----------------------------------------------------
+    tanımla anaMenüdenCik = YANLIŞ
+    DÖNGÜ (anaMenüdenCik == YANLIŞ)
+      
+      YAZDIR "\n--- ANA MENÜ ---"
+      YAZDIR "1- Randevu İşlemleri"
+      YAZDIR "2- Tahlil Sonuçları"
+      YAZDIR "3- Çıkış Yap"
+      GİRİŞ AL: "Lütfen yapmak istediğiniz işlemi seçin: ", anaSecim
+      
+      // SEÇİM DURUMU (anaSecim)
+      SEÇİM DURUMU anaSecim:
+        DURUM '1': // Randevu Modülü
+          İŞLEV_RandevuModulu()
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        DURUM '2': // Tahlil Modülü
+          İŞLEV_TahlilModulu()
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        DURUM '3': // Çıkış
+          sistemCalisiyor = YANLIŞ
+          anaMenüdenCik = DOĞRU
+          KIR
+          
+        VARSAYILAN:
+          YAZDIR "Geçersiz seçim. Lütfen menüden bir numara giriniz."
+      SON SEÇİM
+      
+    SON DÖNGÜ // Ana menü döngüsü sonu
+    
+    // Kullanıcı doğrudan "3- Çıkış Yap" seçmediyse tekrar sor
+    EĞER (sistemCalisiyor == DOĞRU)
+      tanımla gecerliCevap = YANLIŞ
+      TEKRARLA
+        GİRİŞ AL: "\nBaşka bir işlem yapmak ister misiniz? (E/H): ", devamCevabi
+        devamCevabi = devamCevabi.BüyükHarfeÇevir()
+        EĞER (devamCevabi == "E" VEYA devamCevabi == "H")
+          gecerliCevap = DOĞRU
+        DEĞİLSE
+          YAZDIR "Lütfen sadece 'E' veya 'H' giriniz."
+        SON EĞER
+      KADAR (gecerliCevap == DOĞRU)
+      
+      EĞER (devamCevabi == "H")
+        sistemCalisiyor = YANLIŞ
+      SON EĞER
+    SON EĞER
+    
+  SON DÖNGÜ // Ana sistem döngüsü sonu
+  
+  YAZDIR "Sistemden çıkıldı. Sağlıklı günler dileriz."
+BİTİR
+
+
+// ====================================================
+//                 İŞLEV (FONKSİYON) TANIMLARI
+// ====================================================
+
+İŞLEV İŞLEV_RandevuModulu():
+  tanımla randevuAkisiDevamEt = DOĞRU
+  
+  // 3a. Poliklinik Seçim Döngüsü
+  DÖNGÜ (randevuAkisiDevamEt == DOĞRU)
+    poliklinikler = Veritabanı_PoliklinikleriGetir()
+    YAZDIR "\n--- POLİKLİNİKLER ---"
+    Listele(poliklinikler)
+    YAZDIR "0- Ana Menüye Dön"
+    GİRİŞ AL: "Poliklinik seçiniz: ", poliklinikSecimi
+    
+    EĞER (poliklinikSecimi == "0")
+      randevuAkisiDevamEt = YANLIŞ
+      KIR
+    DEĞİLSE EĞER (poliklinikSecimi geçerli bir numara)
+      secilenPoliklinik = poliklinikler[poliklinikSecimi]
+      
+      // 3b. Doktor Seçim Döngüsü
+      tanımla doktoraGeriDon = YANLIŞ
+      TEKRARLA
+        doktorlar = Veritabanı_DoktorlarıGetir(secilenPoliklinik)
+        YAZDIR "\n--- DOKTORLAR ---"
+        Listele(doktorlar)
+        YAZDIR "0- Poliklinik Seçimine Geri Dön"
+        GİRİŞ AL: "Doktor seçiniz: ", doktorSecimi
+        
+        EĞER (doktorSecimi == "0")
+          doktoraGeriDon = DOĞRU // Üst döngüye (poliklinik) dönmek için
+        DEĞİLSE EĞER (doktorSecimi geçerli bir numara)
+          secilenDoktor = doktorlar[doktorSecimi]
+          // Tarih-Saat seçim işlevini çağır
+          randevuAlindi = İŞLEV_TarihSaatSec(secilenDoktor)
+          EĞER (randevuAlindi)
+            randevuAkisiDevamEt = YANLIŞ // Tüm randevu akışını bitir
+            doktoraGeriDon = DOĞRU // Doktor seçim döngüsünü bitir
+          SON EĞER
+        DEĞİLSE
+          YAZDIR "Geçersiz doktor seçimi."
+        SON EĞER
+      KADAR (doktoraGeriDon == DOĞRU)
+      
+    DEĞİLSE
+      YAZDIR "Geçersiz poliklinik seçimi."
+    SON EĞER
+  SON DÖNGÜ
+SON İŞLEV
+
+
+İŞLEV İŞLEV_TahlilModulu():
+  tahliller = Veritabanı_TahlilleriGetir(mevcutKullanici.TC)
+  
+  EĞER (tahliller boş)
+    YAZDIR "Adınıza kayıtlı tahlil bulunmamaktadır."
+    DÖNDÜR // Fonksiyondan çık
+  SON EĞER
+  
+  // 4b. Tahlil Seçim Döngüsü
+  tanımla tahlildenCik = YANLIŞ
+  DÖNGÜ (tahlildenCik == YANLIŞ)
+    YAZDIR "\n--- TAHLİL SONUÇLARI ---"
+    // Tahlilleri durumuyla listele
+    İÇİN her tahlil, indeks tahliller İÇİNDE:
+      YAZDIR (indeks+1) + "- " + tahlil.Ad + " (" + tahlil.Tarih + ") - Durum: " + tahlil.Durum
+    SON İÇİN
+    YAZDIR "0- Ana Menüye Dön"
+    GİRİŞ AL: "Görüntülemek istediğiniz tahlili seçin: ", tahlilSecimi
+    
+    EĞER (tahlilSecimi == "0")
+      tahlildenCik = DOĞRU
+    DEĞİLSE EĞER (tahlilSecimi geçerli bir numara)
+      secilenTahlil = tahliller[tahlilSecimi - 1]
+      
+      EĞER (secilenTahlil.Durum == "Sonuç Hazır")
+        YAZDIR "\n--- " + secilenTahlil.Ad + " SONUÇLARI ---"
+        YAZDIR secilenTahlil.Detaylar
+        
+        GİRİŞ AL: "Sonuçları PDF olarak indirmek ister misiniz? (E/H): ", pdfCevap
+        EĞER (pdfCevap.BüyükHarfeÇevir() == "E")
+          PDF_OlusturVeIndir(secilenTahlil)
+          YAZDIR "PDF başarıyla indirildi."
+        SON EĞER
+        tahlildenCik = DOĞRU // İşlem bitti, döngüden çık
+      DEĞİLSE
+        YAZDIR "Bu tahlilin sonucu henüz hazır değil. Lütfen başka bir tahlil seçin."
+      SON EĞER
+    DEĞİLSE
+      YAZDIR "Geçersiz seçim."
+    SON EĞER
+  SON DÖNGÜ
+SON İŞLEV
+şimdi bu sistemde eğer hata vaaarsa düzelt sonra dot diline dönüştür
+
+Harika bir istek. Önceki adımda oluşturduğumuz kapsamlı sözde kodu (pseudocode) incelediğimde, mantıksal akışta herhangi bir hata bulunmamaktadır. Akış, kullanıcıyı doğru yönlendiren, geri dönme seçenekleri sunan ve hataları yöneten sağlam bir yapıya sahiptir.
+
+Şimdi bu hatasız ve detaylı mantıksal yapıyı, bir sistemin veya algoritmanın akışını görselleştirmek için kullanılan standart bir dil olan DOT diline dönüştürelim. Bu kod, Graphviz gibi bir araç kullanılarak görsel bir akış şemasına (flowchart) çevrilebilir.
+
+DOT Dili Açıklaması ve Kodu
+DOT dili, düğümleri (nodes) ve onları birleştiren kenarları (edges) metin olarak tanımlamamızı sağlar. Aşağıdaki kod, sistemin her adımını bir düğüm olarak ve bu adımlar arasındaki geçişleri oklar olarak temsil eder.
+
+Düğümler (Nodes):
+
+Elips (shape=ellipse): Sistemin başlangıç ve bitiş noktaları.
+
+Kutu (shape=box): Bir işlemin yapıldığı adımlar (örn: "Menüyü Göster").
+
+Baklava (shape=diamond): Karar veya koşul noktaları (örn: "Seçim Geçerli mi?").
+
+Kümeler (Clusters): İlgili adımları bir arada gruplayarak modülleri (Giriş, Randevu, Tahlil vb.) görsel olarak ayırmak için subgraph cluster yapısı kullanılmıştır.
+
+Hastane Sistemi için DOT Kodu
+Aşağıdaki kodu kopyalayıp .dot uzantılı bir dosyaya kaydederek (örn: hastane.dot) ve bir DOT görselleştirme aracıyla (örneğin online bir Graphviz editörü) açarak akış şemasını oluşturabilirsiniz.
+
+Kod snippet'i
+digraph HastaneSistemi {
+    // Genel Ayarlar
+    graph [fontname="Arial", fontsize=12, rankdir="TB", splines=ortho];
+    node [fontname="Arial", fontsize=10, shape=box, style=rounded];
+    edge [fontname="Arial", fontsize=9];
+
+    // Başlangıç ve Bitiş Düğümleri
+    Start [label="Başla", shape=ellipse, style=filled, fillcolor="#cde4ff"];
+    End [label="Bitir\nSağlıklı Günler Dileriz", shape=ellipse, style=filled, fillcolor="#ffc0cb"];
+
+    // Ana Akış Düğümleri
+    Baska_Islem_Sorgula [label="Başka Bir İşlem Yapmak\nİster misiniz?", shape=diamond, style=filled, fillcolor=lightyellow];
+
+    // Başlangıç Bağlantısı
+    Start -> Giris_TCKN_Al;
+
+    // ------------------------------------
+    // GİRİŞ MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Giris {
+        label = "1. Kimlik Doğrulama Modülü";
+        style = "filled";
+        fillcolor = "#f0f0f0";
+
+        Giris_TCKN_Al [label="T.C. Kimlik Numarası Gir"];
+        Giris_Format_Kontrol [label="TCKN Formatı\nGeçerli mi?\n(11 Hane, Rakam)", shape=diamond];
+        Giris_DB_Kontrol [label="Kullanıcı Veritabanında\nVar mı?", shape=diamond];
+        Giris_Hak_Kontrol [label="Giriş Hakkı > 0 ?", shape=diamond];
+        Giris_Basarisiz [label="Giriş Hakkınız Doldu\nSistemden Çıkılıyor"];
+
+        Giris_TCKN_Al -> Giris_Format_Kontrol;
+        Giris_Format_Kontrol -> Giris_TCKN_Al [label="Hayır"];
+        Giris_Format_Kontrol -> Giris_DB_Kontrol [label="Evet"];
+        Giris_DB_Kontrol -> Giris_Hak_Kontrol [label="Hayır, Kullanıcı Yok"];
+        Giris_Hak_Kontrol -> Giris_TCKN_Al [label="Evet"];
+        Giris_Hak_Kontrol -> Giris_Basarisiz [label="Hayır"];
+        Giris_Basarisiz -> End;
+    }
+
+    // ------------------------------------
+    // ANA MENÜ MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Menu {
+        label = "2. Ana Menü";
+        style = "filled";
+        fillcolor = "#e3f2fd";
+
+        Menu_Goster [label="Ana Menüyü Göster\n1- Randevu\n2- Tahlil\n3- Çıkış"];
+        Menu_Secim_Yap [label="İşlem Seçimi", shape=diamond];
+
+        Menu_Goster -> Menu_Secim_Yap;
+        Menu_Secim_Yap -> Menu_Goster [label="Geçersiz Seçim"];
+        Menu_Secim_Yap -> End [label="3: Çıkış"];
+    }
+
+    // Giriş başarılıysa Ana Menü'ye geç
+    Giris_DB_Kontrol -> Menu_Goster [label="Evet, Hoş Geldiniz"];
+
+
+    // ------------------------------------
+    // RANDEVU MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Randevu {
+        label = "3. Randevu Alma Modülü";
+        style = "filled";
+        fillcolor = "#e8f5e9";
+
+        Randevu_Pol_Listele [label="Poliklinikleri Listele"];
+        Randevu_Pol_Sec [label="Poliklinik Seçimi", shape=diamond];
+        Randevu_Doktor_Listele [label="Doktorları Listele"];
+        Randevu_Doktor_Sec [label="Doktor Seçimi", shape=diamond];
+        Randevu_Saat_Listele [label="Uygun Tarih ve\nSaatleri Göster/Gezin"];
+        Randevu_Saat_Sec [label="Saat Seçimi", shape=diamond];
+        Randevu_Onayla [label="Randevu Bilgilerini Özetle\nve Onay İste", shape=diamond];
+        Randevu_Kaydet [label="Randevuyu Kaydet\nve SMS Gönder"];
+
+        Randevu_Pol_Listele -> Randevu_Pol_Sec;
+        Randevu_Pol_Sec -> Randevu_Doktor_Listele [label="Geçerli Poliklinik"];
+        Randevu_Doktor_Listele -> Randevu_Doktor_Sec;
+        Randevu_Doktor_Sec -> Randevu_Saat_Listele [label="Geçerli Doktor"];
+        Randevu_Saat_Listele -> Randevu_Saat_Sec;
+        Randevu_Saat_Sec -> Randevu_Onayla [label="Saat Seçildi"];
+        Randevu_Onayla -> Randevu_Kaydet [label="Onayla"];
+        Randevu_Kaydet -> Baska_Islem_Sorgula;
+
+        // Geri Dönme Okları
+        Randevu_Pol_Sec -> Menu_Goster [label="0: Ana Menüye Dön"];
+        Randevu_Doktor_Sec -> Randevu_Pol_Listele [label="0: Poliklinik Seçimine Dön"];
+        Randevu_Saat_Sec -> Randevu_Doktor_Listele [label="0: Doktor Seçimine Dön"];
+        Randevu_Onayla -> Randevu_Pol_Listele [label="2: Değişiklik Yap"];
+        Randevu_Onayla -> Menu_Goster [label="3: İptal Et"];
+    }
+
+    // ------------------------------------
+    // TAHLİL MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Tahlil {
+        label = "4. Tahlil Sonuç Modülü";
+        style = "filled";
+        fillcolor = "#fff3e0";
+
+        Tahlil_Kayit_Kontrol [label="Hastanın Tahlil Kaydı\nVar mı?", shape=diamond];
+        Tahlil_Listele [label="Tahlilleri Durumlarıyla\nBirlikte Listele"];
+        Tahlil_Sec [label="Tahlil Seçimi", shape=diamond];
+        Tahlil_Sonuc_Hazir_Mi [label="Seçilen Tahlilin Sonucu\nHazır mı?", shape=diamond];
+        Tahlil_Goruntule [label="Tahlil Sonucunu\nGörüntüle"];
+        Tahlil_PDF_Sor [label="PDF Olarak\nİndirilsin mi?", shape=diamond];
+        Tahlil_PDF_Indir [label="Sonuçları PDF Olarak\nOluştur ve İndir"];
+        
+        Tahlil_Kayit_Kontrol -> Tahlil_Listele [label="Evet"];
+        Tahlil_Listele -> Tahlil_Sec;
+        Tahlil_Sec -> Tahlil_Sonuc_Hazir_Mi [label="Geçerli Tahlil"];
+        Tahlil_Sonuc_Hazir_Mi -> Tahlil_Listele [label="Hayır, Bekleniyor"];
+        Tahlil_Sonuc_Hazir_Mi -> Tahlil_Goruntule [label="Evet, Hazır"];
+        Tahlil_Goruntule -> Tahlil_PDF_Sor;
+        Tahlil_PDF_Sor -> Tahlil_PDF_Indir [label="Evet"];
+        Tahlil_PDF_Sor -> Baska_Islem_Sorgula [label="Hayır"];
+        Tahlil_PDF_Indir -> Baska_Islem_Sorgula;
+        Tahlil_Sec -> Menu_Goster [label="0: Ana Menüye Dön"];
+    }
+    
+    // Modül Bağlantıları
+    Menu_Secim_Yap -> Randevu_Pol_Listele [label="1: Randevu"];
+    Menu_Secim_Yap -> Tahlil_Kayit_Kontrol [label="2: Tahlil"];
+    
+    Tahlil_Kayit_Kontrol -> Baska_Islem_Sorgula [label="Hayır, Kayıt Yok"];
+
+
+    // Ana Döngü Bağlantısı
+    Baska_Islem_Sorgula -> Menu_Goster [label="Evet"];
+    Baska_Islem_Sorgula -> End [label="Hayır"];
+}
