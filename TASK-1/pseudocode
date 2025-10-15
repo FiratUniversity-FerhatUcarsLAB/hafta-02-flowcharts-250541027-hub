@@ -1,0 +1,114 @@
+BASLA
+
+  // Başlangıç değişkenleri (bankadan / sistemden gelenler)
+  TANIMLA kart_bloke DURUM = FALSE
+  TANIMLA dogru_PIN = "1234"           // örnek: sistemde kayıtlı PIN
+  TANIMLA bakiye = 3500               // kullanıcının hesabındaki bakiye (TL)
+  TANIMLA gunluk_limit = 2000         // günlük çekim limiti (TL)
+  TANIMLA gunluk_cekim = 0            // bugüne kadar çekilen miktar (TL)
+
+  // PIN doğrulama (en fazla 3 deneme)
+  TANIMLA deneme = 0
+  TANIMLA pin_basari = FALSE
+
+  DONGU EGER deneme < 3 ISE
+    YAZ "Lütfen PIN'inizi giriniz:"
+    OKU girilen_PIN
+    deneme = deneme + 1
+
+    EGER girilen_PIN = dogru_PIN ISE
+      pin_basari = TRUE
+      YAZ "PIN doğrulandı."
+      BITIR DONGU
+    ISE
+      EGER deneme < 3 ISE
+        YAZ "Hatalı PIN. Kalan hak: " , 3 - deneme
+      ISE
+        YAZ "3 kez hatalı giriş. Kart blokelendi."
+        kart_bloke DURUM = TRUE
+      SON EGER
+    SON EGER
+  SON DONGU
+
+  // Eğer kart bloke olduysa işlem sonlandır
+  EGER kart_bloke DURUM = TRUE ISE
+    YAZ "İşlem sonlandırıldı. Banka ile iletişime geçin."
+    BITIR
+  SON EGER
+
+  // PIN başarılıysa işlem döngüsü (kullanıcı isterse tekrarlanabilir)
+  TANIMLA islem_devam = TRUE
+
+  DONGU EGER islem_devam = TRUE ISE
+
+    // 1) Çekilecek tutarı okuma
+    YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları olmalı):"
+    OKU tutar
+
+    // 2) Tutarın pozitif sayı olup olmadığı kontrolü
+    EGER tutar <= 0 ISE
+      YAZ "Geçersiz tutar. Pozitif bir miktar girin."
+      GITARAA SL // (işlem tekrarı için döngüye dön)
+    SON EGER
+
+    // 3) 20 TL katı kontrolü
+    EGER (tutar MOD 20) <> 0 ISE
+      YAZ "Tutar 20 TL'nin katı olmalıdır. Lütfen 20'nin katı bir tutar girin."
+      GITARAA SL
+    SON EGER
+
+    // 4) Günlük limit kontrolü
+    TANIMLA kalan_gunluk_limit = gunluk_limit - gunluk_cekim
+    EGER tutar > kalan_gunluk_limit ISE
+      YAZ "İşlem reddedildi: Günlük limit aşılıyor. Kalan günlük limit: " , kalan_gunluk_limit , " TL"
+      GITARAA SL
+    SON EGER
+
+    // 5) Bakiye kontrolü
+    EGER tutar > bakiye ISE
+      YAZ "İşlem reddedildi: Yetersiz bakiye. Hesabınızdaki bakiye: " , bakiye , " TL"
+      GITARAA SL
+    SON EGER
+
+    // 6) Tüm kontroller geçti — işlemi onaylama
+    YAZ "İşlemi onaylıyor musunuz? (Evet/Hayır)"
+    OKU onay
+
+    EGER (onay = "Evet" VEYA onay = "evet" VEYA onay = "E") ISE
+      // Para verme ve kayıt güncelleme
+      bakiye = bakiye - tutar
+      gunluk_cekim = gunluk_cekim + tutar
+
+      YAZ "Lütfen paranızı alın: " , tutar , " TL"
+      YAZ "Güncel bakiye: " , bakiye , " TL"
+      YAZ "Bugün çektiğiniz toplam: " , gunluk_cekim , " TL"
+
+      // Makbuz seçeneği
+      YAZ "Makbuz ister misiniz? (Evet/Hayır)"
+      OKU makbuz
+      EGER (makbuz = "Evet" VEYA makbuz = "evet" VEYA makbuz = "E") ISE
+        YAZ "Makbuz düzenleniyor..."
+        YAZ "----- MAKBUZ -----"
+        YAZ "Çekilen tutar: " , tutar , " TL"
+        YAZ "Kalan bakiye: " , bakiye , " TL"
+        YAZ "Tarih: " , BUGUNUN_TARIHI
+        YAZ "-------------------"
+      SON EGER
+
+    ISE
+      YAZ "İşlem iptal edildi."
+    SON EGER
+
+    // 7) Başka işlem yapmak isteği
+    YAZ "Başka bir işlem yapmak ister misiniz? (Evet/Hayır)"
+    OKU cevap
+    EGER (cevap = "Evet" VEYA cevap = "evet" VEYA cevap = "E") ISE
+      islem_devam = TRUE
+    ISE
+      islem_devam = FALSE
+      YAZ "İşlemleriniz için teşekkürler. Güvenli çıkış yapılıyor."
+    SON EGER
+
+  SON DONGU
+
+BITIR
