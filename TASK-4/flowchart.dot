@@ -1,0 +1,104 @@
+digraph OgrenciDersKayitSistemi {
+    // Genel Ayarlar
+    graph [fontname="Arial", fontsize=12, rankdir="TB", splines=ortho];
+    node [fontname="Arial", fontsize=10, shape=box, style=rounded];
+    edge [fontname="Arial", fontsize=9];
+
+    // Başlangıç ve Bitiş Düğümleri
+    Start [label="Başla", shape=ellipse, style=filled, fillcolor="#cde4ff"];
+    End [label="Bitir\nSistemden Çıkılıyor", shape=ellipse, style=filled, fillcolor="#ffc0cb"];
+
+    // ------------------------------------
+    // GİRİŞ MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Giris {
+        label = "1. Öğrenci Girişi";
+        style = "filled";
+        fillcolor = "#f0f0f0";
+
+        Giris_Bilgi_Al [label="Öğrenci No ve Şifre Gir"];
+        Giris_Kontrol [label="Bilgiler Doğru mu?", shape=diamond];
+        
+        Start -> Giris_Bilgi_Al;
+        Giris_Bilgi_Al -> Giris_Kontrol;
+        Giris_Kontrol -> End [label="Hayır"];
+    }
+
+    // ------------------------------------
+    // ANA İŞLEM DÖNGÜSÜ
+    // ------------------------------------
+    subgraph cluster_AnaDongu {
+        label = "2. Ders Ekleme / Çıkarma Döngüsü";
+        style = "filled";
+        fillcolor = "#e3f2fd";
+
+        Menu_Goster [label="Açılan Dersleri ve Sepeti Göster\n(Toplam Kredi)"];
+        Islem_Sec [label="İşlem Seçimi\n(1:Ekle, 2:Çıkar, 3:Tamamla)", shape=diamond];
+        
+        // --- Ders Ekleme Akışı ---
+        Ders_Ekle_Kod_Al [label="Eklenecek Dersin\nKodunu Gir"];
+        Kontenjan_Kontrol [label="Kontenjan Var mı?", shape=diamond, style=filled, fillcolor=lightyellow];
+        OnKosul_Kontrol [label="Ön Koşul Sağlandı mı?", shape=diamond, style=filled, fillcolor=lightyellow];
+        Cakisma_Kontrol [label="Zaman Çakışması Var mı?", shape=diamond, style=filled, fillcolor=lightyellow];
+        Kredi_Limit_Kontrol [label="Kredi Limiti (35)\nAşılıyor mu?", shape=diamond, style=filled, fillcolor=lightyellow];
+        Ders_Ekle_Basarili [label="Dersi Sepete Ekle\nToplam Krediyi Güncelle"];
+
+        // --- Ders Çıkarma Akışı ---
+        Ders_Cikar_Kod_Al [label="Çıkarılacak Dersin\nKodunu Gir"];
+        Ders_Cikar_Kontrol [label="Ders Sepette Mevcut mu?", shape=diamond];
+        Ders_Cikar_Basarili [label="Dersi Sepetten Çıkar\nToplam Krediyi Düşür"];
+
+        // Döngü Bağlantıları
+        Giris_Kontrol -> Menu_Goster [label="Evet, Hoş Geldiniz"];
+        Menu_Goster -> Islem_Sec;
+
+        Islem_Sec -> Ders_Ekle_Kod_Al [label="1: Ekle"];
+            Ders_Ekle_Kod_Al -> Kontenjan_Kontrol;
+            Kontenjan_Kontrol -> OnKosul_Kontrol [label="Evet"];
+            OnKosul_Kontrol -> Cakisma_Kontrol [label="Evet"];
+            Cakisma_Kontrol -> Kredi_Limit_Kontrol [label="Hayır, Çakışma Yok"];
+            Kredi_Limit_Kontrol -> Ders_Ekle_Basarili [label="Hayır, Aşılmıyor"];
+            Ders_Ekle_Basarili -> Menu_Goster; // Döngü başı
+            // Hata Durumları
+            Kontenjan_Kontrol -> Menu_Goster [label="Hayır"];
+            OnKosul_Kontrol -> Menu_Goster [label="Hayır"];
+            Cakisma_Kontrol -> Menu_Goster [label="Evet, Çakışma Var"];
+            Kredi_Limit_Kontrol -> Menu_Goster [label="Evet, Aşılıyor"];
+
+        Islem_Sec -> Ders_Cikar_Kod_Al [label="2: Çıkar"];
+            Ders_Cikar_Kod_Al -> Ders_Cikar_Kontrol;
+            Ders_Cikar_Kontrol -> Ders_Cikar_Basarili [label="Evet"];
+            Ders_Cikar_Kontrol -> Menu_Goster [label="Hayır"];
+            Ders_Cikar_Basarili -> Menu_Goster; // Döngü başı
+        
+        Islem_Sec -> Menu_Goster [label="Geçersiz Seçim"];
+    }
+
+    // ------------------------------------
+    // KAYIT ONAY MODÜLÜ
+    // ------------------------------------
+    subgraph cluster_Onay {
+        label = "3. Kayıt Onaylama";
+        style = "filled";
+        fillcolor = "#e8f5e9";
+
+        Kayit_Ozeti_Goster [label="Kayıt Özetini Göster"];
+        GPA_Kontrol [label="GPA < 2.5 mi?", shape=diamond, style=filled, fillcolor=lightyellow];
+        Kayit_Durumu_Danisman [label="Durum: Danışman Onayı\nBekleniyor"];
+        Kayit_Durumu_Kesin [label="Durum: Kayıt Kesinleşti"];
+        Son_Onay [label="Kaydı Onaylıyor musun?\n(E/H)", shape=diamond];
+        Kayit_Basarili [label="Kayıt Başarıyla Tamamlandı"];
+        
+        Islem_Sec -> Kayit_Ozeti_Goster [label="3: Tamamla"];
+        Kayit_Ozeti_Goster -> GPA_Kontrol;
+        GPA_Kontrol -> Kayit_Durumu_Danisman [label="Evet"];
+        GPA_Kontrol -> Kayit_Durumu_Kesin [label="Hayır"];
+        Kayit_Durumu_Danisman -> Son_Onay;
+        Kayit_Durumu_Kesin -> Son_Onay;
+        
+        Son_Onay -> Kayit_Basarili [label="Evet"];
+        Son_Onay -> Menu_Goster [label="Hayır, Değiştir"]; // Döngüye geri dönüş
+        
+        Kayit_Basarili -> End;
+    }
+}
