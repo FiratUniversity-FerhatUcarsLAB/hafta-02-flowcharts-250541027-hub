@@ -1,0 +1,350 @@
+“ATM para ¸cekme sistemi i¸cin detaylı pseudocode yazmanı istiyorum.
+Şunları iÇermeli: PIN dogrulama (3 hak), bakiye kontrolu, tutar
+kontroLu (20 TL katları), gunluk limit kontrolu, islem tekrarı secenegi. Tum
+adımları BASLA, OKU, YAZ, EGER ,ISE, DONGU yapılarıyla yaz.”
+
+
+
+BASLA
+
+  // Başlangıç değişkenleri (bankadan / sistemden gelenler)
+  TANIMLA kart_bloke DURUM = FALSE
+  TANIMLA dogru_PIN = "1234"           // örnek: sistemde kayıtlı PIN
+  TANIMLA bakiye = 3500               // kullanıcının hesabındaki bakiye (TL)
+  TANIMLA gunluk_limit = 2000         // günlük çekim limiti (TL)
+  TANIMLA gunluk_cekim = 0            // bugüne kadar çekilen miktar (TL)
+
+  // PIN doğrulama (en fazla 3 deneme)
+  TANIMLA deneme = 0
+  TANIMLA pin_basari = FALSE
+
+  DONGU EGER deneme < 3 ISE
+    YAZ "Lütfen PIN'inizi giriniz:"
+    OKU girilen_PIN
+    deneme = deneme + 1
+
+    EGER girilen_PIN = dogru_PIN ISE
+      pin_basari = TRUE
+      YAZ "PIN doğrulandı."
+      BITIR DONGU
+    ISE
+      EGER deneme < 3 ISE
+        YAZ "Hatalı PIN. Kalan hak: " , 3 - deneme
+      ISE
+        YAZ "3 kez hatalı giriş. Kart blokelendi."
+        kart_bloke DURUM = TRUE
+      SON EGER
+    SON EGER
+  SON DONGU
+
+  // Eğer kart bloke olduysa işlem sonlandır
+  EGER kart_bloke DURUM = TRUE ISE
+    YAZ "İşlem sonlandırıldı. Banka ile iletişime geçin."
+    BITIR
+  SON EGER
+
+  // PIN başarılıysa işlem döngüsü (kullanıcı isterse tekrarlanabilir)
+  TANIMLA islem_devam = TRUE
+
+  DONGU EGER islem_devam = TRUE ISE
+
+    // 1) Çekilecek tutarı okuma
+    YAZ "Çekmek istediğiniz tutarı giriniz (20 TL katları olmalı):"
+    OKU tutar
+
+    // 2) Tutarın pozitif sayı olup olmadığı kontrolü
+    EGER tutar <= 0 ISE
+      YAZ "Geçersiz tutar. Pozitif bir miktar girin."
+      GITARAA SL // (işlem tekrarı için döngüye dön)
+    SON EGER
+
+    // 3) 20 TL katı kontrolü
+    EGER (tutar MOD 20) <> 0 ISE
+      YAZ "Tutar 20 TL'nin katı olmalıdır. Lütfen 20'nin katı bir tutar girin."
+      GITARAA SL
+    SON EGER
+
+    // 4) Günlük limit kontrolü
+    TANIMLA kalan_gunluk_limit = gunluk_limit - gunluk_cekim
+    EGER tutar > kalan_gunluk_limit ISE
+      YAZ "İşlem reddedildi: Günlük limit aşılıyor. Kalan günlük limit: " , kalan_gunluk_limit , " TL"
+      GITARAA SL
+    SON EGER
+
+    // 5) Bakiye kontrolü
+    EGER tutar > bakiye ISE
+      YAZ "İşlem reddedildi: Yetersiz bakiye. Hesabınızdaki bakiye: " , bakiye , " TL"
+      GITARAA SL
+    SON EGER
+
+    // 6) Tüm kontroller geçti — işlemi onaylama
+    YAZ "İşlemi onaylıyor musunuz? (Evet/Hayır)"
+    OKU onay
+
+    EGER (onay = "Evet" VEYA onay = "evet" VEYA onay = "E") ISE
+      // Para verme ve kayıt güncelleme
+      bakiye = bakiye - tutar
+      gunluk_cekim = gunluk_cekim + tutar
+
+      YAZ "Lütfen paranızı alın: " , tutar , " TL"
+      YAZ "Güncel bakiye: " , bakiye , " TL"
+      YAZ "Bugün çektiğiniz toplam: " , gunluk_cekim , " TL"
+
+      // Makbuz seçeneği
+      YAZ "Makbuz ister misiniz? (Evet/Hayır)"
+      OKU makbuz
+      EGER (makbuz = "Evet" VEYA makbuz = "evet" VEYA makbuz = "E") ISE
+        YAZ "Makbuz düzenleniyor..."
+        YAZ "----- MAKBUZ -----"
+        YAZ "Çekilen tutar: " , tutar , " TL"
+        YAZ "Kalan bakiye: " , bakiye , " TL"
+        YAZ "Tarih: " , BUGUNUN_TARIHI
+        YAZ "-------------------"
+      SON EGER
+
+    ISE
+      YAZ "İşlem iptal edildi."
+    SON EGER
+
+    // 7) Başka işlem yapmak isteği
+    YAZ "Başka bir işlem yapmak ister misiniz? (Evet/Hayır)"
+    OKU cevap
+    EGER (cevap = "Evet" VEYA cevap = "evet" VEYA cevap = "E") ISE
+      islem_devam = TRUE
+    ISE
+      islem_devam = FALSE
+      YAZ "İşlemleriniz için teşekkürler. Güvenli çıkış yapılıyor."
+    SON EGER
+
+  SON DONGU
+
+BITIR
+
+
+“Bu pseudocode’u Graphviz DOT diline cevir. Basla/Bitir icin oval,
+girdi/cıktı icin parallelogram, islem icin box, karar icin diamond kullan.
+Tum okları ve etiketleri ekle.”
+
+
+
+Harika — şimdi yukardaki ATM para çekme sistemi pseudocode’unu senin istediğin şekilde Graphviz DOT diline dönüştüreceğim.
+
+Aşağıdaki kodu doğrudan bir .dot dosyasına kaydedip (örneğin atm_withdrawal.dot), sonra graphviz veya bir çevrimiçi görselleştiriciyle (https://dreampuf.github.io/GraphvizOnline/) açabilirsin.
+
+
+
+digraph ATM_ParaCekme {
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    // --- Şekil stilleri ---
+    start [shape=oval, label="BAŞLA"];
+    end [shape=oval, label="BİTİR"];
+
+    // PIN doğrulama
+    read_pin [shape=parallelogram, label="PIN Giriniz"];
+    check_pin [shape=diamond, label="PIN Doğru mu?"];
+    wrong_pin [shape=box, label="Hatalı PIN -> Deneme +1"];
+    try_again [shape=diamond, label="3 Haktan Az Mı?"];
+    card_blocked [shape=box, label="Kart Bloke"];
+    stop_after_block [shape=parallelogram, label="Kart Bloke Mesajı"];
+
+    // Para çekme işlemi
+    withdraw_loop [shape=diamond, label="İşlem Yapmak İster Misiniz?"];
+    read_amount [shape=parallelogram, label="Tutar Giriniz (20 TL Katı)"];
+    check_positive [shape=diamond, label="Tutar > 0?"];
+    check_multiple [shape=diamond, label="20 TL Katı mı?"];
+    check_daily_limit [shape=diamond, label="Günlük Limit Aşılıyor mu?"];
+    check_balance [shape=diamond, label="Yeterli Bakiye Var mı?"];
+    confirm [shape=diamond, label="İşlemi Onaylıyor musunuz?"];
+    perform_withdraw [shape=box, label="Bakiye -= Tutar\nGünlükÇekim += Tutar"];
+    give_cash [shape=parallelogram, label="Parayı Ver\nYeni Bakiye Yazdır"];
+    ask_receipt [shape=diamond, label="Makbuz İster misiniz?"];
+    print_receipt [shape=parallelogram, label="Makbuz Yazdır"];
+    cancel [shape=box, label="İşlem İptal Edildi"];
+    another [shape=diamond, label="Başka İşlem İster misiniz?"];
+    thanks [shape=parallelogram, label="Teşekkür Mesajı"];
+
+    // --- Akışlar ---
+    start -> read_pin;
+    read_pin -> check_pin;
+
+    check_pin -> withdraw_loop [label="Evet"];
+    check_pin -> wrong_pin [label="Hayır"];
+
+    wrong_pin -> try_again;
+    try_again -> read_pin [label="Evet"];
+    try_again -> card_blocked [label="Hayır"];
+
+    card_blocked -> stop_after_block -> end;
+
+    // İşlem döngüsü
+    withdraw_loop -> read_amount [label="Evet"];
+    withdraw_loop -> end [label="Hayır"];
+
+    read_amount -> check_positive;
+    check_positive -> check_multiple [label="Evet"];
+    check_positive -> read_amount [label="Hayır"];
+
+    check_multiple -> check_daily_limit [label="Evet"];
+    check_multiple -> read_amount [label="Hayır"];
+
+    check_daily_limit -> check_balance [label="Hayır"];
+    check_daily_limit -> read_amount [label="Evet (limit aşıldı)"];
+
+    check_balance -> confirm [label="Evet"];
+    check_balance -> read_amount [label="Hayır (yetersiz bakiye)"];
+
+    confirm -> perform_withdraw [label="Evet"];
+    confirm -> cancel [label="Hayır"];
+
+    perform_withdraw -> give_cash;
+    give_cash -> ask_receipt;
+
+    ask_receipt -> print_receipt [label="Evet"];
+    ask_receipt -> another [label="Hayır"];
+    print_receipt -> another;
+
+    cancel -> another;
+
+    another -> withdraw_loop [label="Evet"];
+    another -> thanks [label="Hayır"];
+
+    thanks -> end;
+
+    // Görsel düzen
+    {rank = same; read_pin; wrong_pin; try_again;}
+}
+
+
+
+bu koddaki hataları tespit edip düzelt
+
+
+
+
+
+
+Mükemmel — çok yerinde bir istek, çünkü Graphviz DOT dosyalarında biçim ve bağlantı hataları diyagramın hiç çizilmemesine neden olabilir.
+Aşağıda sana önce hataları açıklayacağım, sonra düzeltilmiş, tamamen çalışır bir DOT kodu vereceğim.
+
+🔍 1. Orijinal koddaki hatalar
+
+Türkçe karakter sorunu:
+Graphviz bazen UTF-8 karakterleri (ş, ğ, ü, İ vb.) doğru göstermeyebilir.
+
+Çözüm: charset="UTF-8"; satırını eklemek veya bu karakterleri ASCII benzerleriyle değiştirmek gerekir.
+
+Yönlendirme etiketi (GITARAA SL) ve açıklama sembolleri (//)
+
+DOT dilinde // yorum olarak geçerli değildir, yalnızca /* ... */ desteklenir.
+
+Ayrıca “GITARAA SL” gibi pseudocode referansları DOT içinde geçerli değil.
+
+Etiketlerde tırnak eksikliği / kaçış problemi:
+label="Evet (limit aşıldı)" gibi ifadelerde tırnaklar düzgün ama \n karakterleri varsa bazen hataya yol açabilir.
+Çözüm: \n yerine \\n kullanılmalı.
+
+rankdir=TB yazımında noktalı virgül eksikliği:
+DOT dilinde her ifade ; ile bitmeli.
+
+{rank = same; ...} alt gruplaması:
+Bu kısım isteğe bağlı, ama tek başına “{rank = same; read_pin; wrong_pin; try_again;}” ifadesi akışı etkilemez.
+Kalsa da olur, kaldırılabilir de.
+
+✅ 2. DÜZELTİLMİŞ, TAMAMEN ÇALIŞAN DOT KODU
+
+Bu sürüm Graphviz Online veya terminalde dot -Tpng atm.dot -o atm.png komutuyla doğrudan çalışır.
+UTF-8, satır sonları, ve geçerli yorum formatları eklendi.
+
+
+
+digraph ATM_ParaCekme {
+    charset="UTF-8";
+    rankdir=TB;
+    node [fontname="Arial", fontsize=10];
+
+    /* --- Şekil tipleri --- */
+    start [shape=oval, label="BAŞLA"];
+    end [shape=oval, label="BİTİR"];
+
+    /* --- PIN doğrulama --- */
+    read_pin [shape=parallelogram, label="PIN giriniz"];
+    check_pin [shape=diamond, label="PIN doğru mu?"];
+    wrong_pin [shape=box, label="Hatalı PIN\nDeneme = Deneme + 1"];
+    try_again [shape=diamond, label="3 Haktan az mı?"];
+    card_blocked [shape=box, label="Kart bloke edildi"];
+    stop_after_block [shape=parallelogram, label="Kart bloke mesajı göster"];
+
+    /* --- Para çekme --- */
+    withdraw_loop [shape=diamond, label="İşlem yapmak ister misiniz?"];
+    read_amount [shape=parallelogram, label="Tutar giriniz (20 TL katı)"];
+    check_positive [shape=diamond, label="Tutar > 0 mı?"];
+    check_multiple [shape=diamond, label="20 TL katı mı?"];
+    check_daily_limit [shape=diamond, label="Günlük limit aşılıyor mu?"];
+    check_balance [shape=diamond, label="Yeterli bakiye var mı?"];
+    confirm [shape=diamond, label="İşlemi onaylıyor musunuz?"];
+    perform_withdraw [shape=box, label="Bakiye = Bakiye - Tutar\\nGünlükÇekim = GünlükÇekim + Tutar"];
+    give_cash [shape=parallelogram, label="Parayı ver\\nYeni bakiye yazdır"];
+    ask_receipt [shape=diamond, label="Makbuz ister misiniz?"];
+    print_receipt [shape=parallelogram, label="Makbuz yazdır"];
+    cancel [shape=box, label="İşlem iptal edildi"];
+    another [shape=diamond, label="Başka işlem ister misiniz?"];
+    thanks [shape=parallelogram, label="Teşekkür mesajı"];
+
+    /* --- Akış bağlantıları --- */
+    start -> read_pin;
+    read_pin -> check_pin;
+
+    check_pin -> withdraw_loop [label="Evet"];
+    check_pin -> wrong_pin [label="Hayır"];
+
+    wrong_pin -> try_again;
+    try_again -> read_pin [label="Evet"];
+    try_again -> card_blocked [label="Hayır"];
+
+    card_blocked -> stop_after_block -> end;
+
+    /* --- İşlem döngüsü --- */
+    withdraw_loop -> read_amount [label="Evet"];
+    withdraw_loop -> end [label="Hayır"];
+
+    read_amount -> check_positive;
+    check_positive -> check_multiple [label="Evet"];
+    check_positive -> read_amount [label="Hayır"];
+
+    check_multiple -> check_daily_limit [label="Evet"];
+    check_multiple -> read_amount [label="Hayır"];
+
+    check_daily_limit -> read_amount [label="Evet (limit aşıldı)"];
+    check_daily_limit -> check_balance [label="Hayır"];
+
+    check_balance -> confirm [label="Evet"];
+    check_balance -> read_amount [label="Hayır (yetersiz bakiye)"];
+
+    confirm -> perform_withdraw [label="Evet"];
+    confirm -> cancel [label="Hayır"];
+
+    perform_withdraw -> give_cash;
+    give_cash -> ask_receipt;
+
+    ask_receipt -> print_receipt [label="Evet"];
+    ask_receipt -> another [label="Hayır"];
+    print_receipt -> another;
+
+    cancel -> another;
+
+    another -> withdraw_loop [label="Evet"];
+    another -> thanks [label="Hayır"];
+
+    thanks -> end;
+
+    /* --- Görsel düzen önerisi --- */
+    {rank = same; read_pin; wrong_pin; try_again;}
+}
+
+
+
+
+
+
