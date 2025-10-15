@@ -1,0 +1,145 @@
+BASLA
+
+  // 1. Kullanıcı Girişi
+  YAZ "Giriş yap veya misafir olarak devam et."
+  OKU kullanici_tipi
+
+  EGER kullanici_tipi = "üye" ISE
+      YAZ "Kullanıcı adı giriniz:"
+      OKU ad
+      YAZ "Şifre giriniz:"
+      OKU sifre
+
+      EGER (ad, sifre) DOĞRU ISE
+          YAZ "Giriş başarılı."
+      ISE
+          YAZ "Hatalı giriş bilgisi. Tekrar deneyin."
+          BITIR
+      SON EGER
+  ISE
+      YAZ "Misafir olarak devam ediyorsunuz."
+  SON EGER
+
+
+  // 2. Ürün Ekleme ve Stok Kontrolü
+  DONGU
+      YAZ "Ürün ID giriniz veya 'bitti' yazınız:"
+      OKU urun_id
+
+      EGER urun_id = "bitti" ISE
+          BITIR DONGU
+      SON EGER
+
+      YAZ "Kaç adet eklemek istiyorsunuz?"
+      OKU miktar
+
+      EGER stok(urun_id) >= miktar ISE
+          SEPETE_EKLE(urun_id, miktar)
+          YAZ "Ürün sepete eklendi."
+      ISE
+          YAZ "Yetersiz stok. Maksimum eklenebilir miktar: ", stok(urun_id)
+      SON EGER
+  SON DONGU
+
+
+  // 3. Sepeti Görüntüleme ve Güncelleme
+  YAZ "Sepetinizdeki ürünler:"
+  SEPETI_GOSTER()
+
+  YAZ "Miktar değiştirmek ister misiniz? (Evet/Hayır)"
+  OKU cevap
+  EGER cevap = "Evet" ISE
+      OKU urun_id, yeni_miktar
+      EGER stok(urun_id) >= yeni_miktar ISE
+          SEPET_GUNCELLE(urun_id, yeni_miktar)
+      ISE
+          YAZ "Yetersiz stok, değişiklik yapılamadı."
+      SON EGER
+  SON EGER
+
+
+  // 4. İndirim Kodu Kontrolü
+  YAZ "İndirim kodunuz var mı? (Evet/Hayır)"
+  OKU cevap
+
+  EGER cevap = "Evet" ISE
+      YAZ "İndirim kodunu giriniz:"
+      OKU kod
+
+      EGER KOD_GECERLI_MI(kod) ISE
+          INDIRIM_UYGULA(kod)
+          YAZ "İndirim uygulandı."
+      ISE
+          YAZ "Geçersiz veya süresi dolmuş kod."
+      SON EGER
+  SON EGER
+
+
+  // 5. Kargo Hesaplama
+  YAZ "Kargo adresinizi giriniz:"
+  OKU adres
+
+  kargo_ucreti = KARGO_HESAPLA(adres, sepet_agirligi)
+
+  EGER kargo_ucreti = 0 ISE
+      YAZ "Ücretsiz kargo!"
+  ISE
+      YAZ "Kargo ücreti: ", kargo_ucreti , " TL"
+  SON EGER
+
+
+  // 6. Vergi Hesaplama
+  vergi = VERGI_HESAPLA(sepet_tutari)
+  toplam_tutar = sepet_tutari + kargo_ucreti + vergi
+
+  YAZ "Toplam tutar (vergiler dahil): ", toplam_tutar , " TL"
+
+
+  // 7. Ödeme Seçimi
+  YAZ "Ödeme yöntemini seçiniz: (Kredi Kartı / Havale / Kapıda Ödeme)"
+  OKU odeme_yontemi
+
+  EGER odeme_yontemi = "Kredi Kartı" ISE
+      YAZ "Kart numarasını giriniz:"
+      OKU kart_no
+      YAZ "Son kullanma tarihi:"
+      OKU tarih
+      YAZ "CVV:"
+      OKU cvv
+
+      EGER ODEME_ONAY(kart_no, tarih, cvv, toplam_tutar) ISE
+          YAZ "Ödeme başarılı."
+      ISE
+          YAZ "Ödeme reddedildi. Başka yöntem deneyin."
+          BITIR
+      SON EGER
+  ISE EGER odeme_yontemi = "Havale" ISE
+      YAZ "IBAN bilgisi: TR00... Havale tamamlandığında onaylayın."
+      OKU onay
+      EGER onay = "Evet" ISE
+          YAZ "Havale işlemi kaydedildi."
+      ISE
+          YAZ "İşlem iptal edildi."
+          BITIR
+      SON EGER
+  ISE
+      YAZ "Kapıda ödeme seçildi. Ek ücret uygulanabilir."
+  SON EGER
+
+
+  // 8. Sipariş Oluşturma ve Stok Güncelleme
+  SIPARIS_OLUSTUR()
+  STOK_GUNCELLE()
+  YAZ "Sipariş başarıyla oluşturuldu."
+
+
+  // 9. Makbuz ve Bildirim
+  YAZ "Makbuz e-posta adresinize gönderildi."
+  YAZ "Kargo bilgisi hazırlandığında size bildirim yapılacaktır."
+
+
+  // 10. İşlem Sonu
+  YAZ "Alışverişiniz için teşekkür ederiz."
+  BITIR
+
+BITIR
