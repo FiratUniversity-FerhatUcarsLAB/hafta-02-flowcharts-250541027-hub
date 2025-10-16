@@ -1,0 +1,80 @@
+// --- DEĞİŞKENLERİN TANIMLANMASI ---
+DEĞİŞKEN sistem_durumu = "KURULU" // Sistem "KURULU" veya "DEVRE DIŞI" olabilir
+DEĞİŞKEN alarm_aktif_mi = YANLIŞ
+DEĞİŞKEN tehdit_seviyesi = 0 // 0: Tehdit Yok, 1: Düşük, 2: Orta, 3: Yüksek
+
+// --- ANA DÖNGÜ: SİSTEM 7/24 ÇALIŞIR ---
+DÖNGÜ SÜRECE (DOĞRU)
+
+  // Sadece sistem kurulu ise güvenlik kontrollerini yap
+  EĞER sistem_durumu == "KURULU" VE alarm_aktif_mi == YANLIŞ ISE
+
+    // --- 1. SENSÖR OKUMA ---
+    // Her döngü iterasyonunda tüm sensörler okunur
+    hareket_algilandi = HAREKET_SENSORUNU_OKU()
+    kapi_pencere_ihlali = KAPI_PENCERE_SENSORUNU_OKU()
+    cam_kirilma_sesi = CAM_KIRILMA_SENSORUNU_OKU()
+
+    // --- 2. TEHDİT ALGILAMA VE SEVİYE BELİRLEME ---
+    tehdit_algilandi = YANLIŞ
+
+    // En yüksek öncelikli tehditler önce kontrol edilir
+    EĞER cam_kirilma_sesi == DOĞRU VE kapi_pencere_ihlali == DOĞRU ISE
+      tehdit_seviyesi = 3 // Yüksek Tehdit
+      tehdit_algilandi = DOĞRU
+    DEĞİLSE EĞER hareket_algilandi == DOĞRU VE kapi_pencere_ihlali == DOĞRU ISE
+      tehdit_seviyesi = 2 // Orta Tehdit
+      tehdit_algilandi = DOĞRU
+    DEĞİLSE EĞER hareket_algilandi == DOĞRU VEYA kapi_pencere_ihlali == DOĞRU ISE
+      tehdit_seviyesi = 1 // Düşük Tehdit
+      tehdit_algilandi = DOĞRU
+    DEĞİLSE
+      tehdit_seviyesi = 0 // Tehdit Yok
+      tehdit_algilandi = YANLIŞ
+    SON EĞER
+
+    // --- 3. ALARM VERME VE BİLDİRİM GÖNDERME ---
+    EĞER tehdit_algilandi == DOĞRU ISE
+      // Alarm durumunu aktif et
+      alarm_aktif_mi = DOĞRU
+
+      // Tehdit seviyesine göre farklı aksiyonlar al
+      EĞER tehdit_seviyesi == 3 ISE // Yüksek Seviye Aksiyonları
+        YUKSEK_SESLI_SIRENI_CAL()
+        TUM_ISIKLARI_YAK_SONDUR()
+        KAMERA_KAYDI_BASLAT(YUKSEK_COZUNURLUK)
+        BILDIRIM_GONDER("ACİL: Yüksek Seviye Tehdit Algılandı! Cam Kırıldı ve Giriş Yapıldı!", "SMS", "UYGULAMA", "EMAIL")
+
+      DEĞİLSE EĞER tehdit_seviyesi == 2 ISE // Orta Seviye Aksiyonları
+        ORTA_SESLI_SIRENI_CAL()
+        GIRIS_ISIKLARINI_YAK()
+        KAMERA_KAYDI_BASLAT(STANDART_COZUNURLUK)
+        BILDIRIM_GONDER("UYARI: Orta Seviye Tehdit Algılandı! Hareket ve Giriş İhlali Var.", "UYGULAMA", "EMAIL")
+
+      DEĞİLSE EĞER tehdit_seviyesi == 1 ISE // Düşük Seviye Aksiyonları
+        DUSUK_SESLI_UYARI_CAL() // Sesli bir uyarı tonu
+        KAMERA_KAYDI_BASLAT(DUSUK_COZUNURLUK)
+        BILDIRIM_GONDER("BİLGİ: Düşük Seviye Tehdit Algılandı! Bir sensör tetiklendi.", "UYGULAMA")
+      SON EĞER
+    SON EĞER
+  SON EĞER
+
+
+  // --- 4. ALARM SIFIRLAMA KONTROLÜ ---
+  // Bu kontrol ana döngü içinde sürekli yapılır
+  EĞER alarm_aktif_mi == DOĞRU ISE
+    kullanici_komutu = KULLANICI_ARAYUZUNDEN_KOMUT_OKU() // Uygulama, SMS veya panelden
+
+    EĞER kullanici_komutu == "ALARM_SIFIRLA" ISE
+      ALARM_DURDUR() // Sirenleri ve ışıkları kapat
+      KAMERA_KAYDI_DURDUR()
+      alarm_aktif_mi = YANLIŞ
+      tehdit_seviyesi = 0
+      BILDIRIM_GONDER("BİLGİ: Alarm kullanıcı tarafından sıfırlandı.", "UYGULAMA")
+    SON EĞER
+  SON EĞER
+
+  // Sistemin işlemciyi yormaması için her döngü sonunda kısa bir bekleme
+  BEKLE(1 saniye)
+
+SON DÖNGÜ
