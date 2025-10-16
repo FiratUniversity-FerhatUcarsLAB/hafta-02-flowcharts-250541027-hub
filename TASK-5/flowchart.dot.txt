@@ -1,0 +1,56 @@
+digraph FullyLabeledSmartHomeSecurity {
+    // --- GRAFİK VE DÜĞÜM STİLLERİ ---
+    graph [fontname="Helvetica", fontsize=10, rankdir=TB, splines=ortho];
+    node [shape=box, style="rounded,filled", fillcolor="#EFEFEF", fontname="Helvetica"];
+    node [shape=diamond, fillcolor="#FFF9C4"];
+    node [shape=ellipse, fillcolor="#C8E6C9"];
+    node [shape=box, style="rounded,filled", fillcolor="#CFD8DC"];
+    edge [fontname="Helvetica", fontsize=9];
+
+    // --- DÜĞÜM TANIMLARI (AKIŞ ADIMLARI) ---
+    Start [label="Başla", shape=ellipse, fillcolor="#C8E6C9"];
+    Wait [label="1 Saniye Bekle"];
+    CheckSystemState [label="Sistem Kurulu ve\nAlarm Pasif mi?", shape=diamond];
+    ReadSensors [label="Tüm Sensörleri Oku\n(Hareket, Kapı, Cam Kırılma)", fillcolor="#E3F2FD"];
+    DetectThreat [label="Tehdit Algılandı mı?", shape=diamond];
+ 
+    DetermineLevel [label="Tehdit Seviyesini Belirle", fillcolor="#E3F2FD"];
+    ActionLevel1 [label="Seviye 1 Aksiyonları:\n- Düşük Sesli Uyarı\n- Kamera Kaydı Başlat\n- Uygulama Bildirimi Gönder"];
+    ActionLevel2 [label="Seviye 2 Aksiyonları:\n- Orta Sesli Siren\n- Giriş Işıklarını Yak\n- E-posta + Uygulama Bildirimi"];
+    ActionLevel3 [label="Seviye 3 Aksiyonları:\n- Yüksek Sesli Siren\n- Tüm Işıkları Yak/Söndür\n- SMS + E-posta + Uygulama Bildirimi"];
+ 
+    ActivateAlarmState [label="Alarm Durumunu 'AKTİF' Yap", fillcolor="#FFCDD2"];
+    CheckReset [label="Kullanıcı Alarmı\nSıfırladı mı?", shape=diamond];
+    ResetSystem [label="Sistemi Sıfırla\nAlarmı Durdur", shape=ellipse, fillcolor="#C8E6C9"];
+
+    // --- SÜREÇ AKIŞI (TÜM OKLAR ETİKETLİ) ---
+ 
+    Start -> Wait;
+    Wait -> CheckSystemState;
+ 
+    // 1. ANA DÖNGÜ: SÜREKLİ KONTROL
+    CheckSystemState -> ReadSensors [label=" Evet"]; // <--- DÜZELTME 1: "Evet" etiketi eklendi.
+    CheckSystemState -> Wait [label=" Hayır (Devre Dışı)"];
+ 
+    ReadSensors -> DetectThreat;
+ 
+    DetectThreat -> DetermineLevel [label=" Evet"]; // <--- DÜZELTME 2: "Evet" etiketi eklendi.
+    DetectThreat -> ReadSensors [dir=back, label=" Hayır\n(Sürekli)", color="#0D47A1", fontcolor="#0D47A1"];
+ 
+    // Tehdit seviyesine göre dallanma
+    DetermineLevel -> ActionLevel1 [label=" Seviye 1 (Düşük)"];
+    DetermineLevel -> ActionLevel2 [label=" Seviye 2 (Orta)"];
+    DetermineLevel -> ActionLevel3 [label=" Seviye 3 (Yüksek)"];
+ 
+    ActionLevel1 -> ActivateAlarmState;
+    ActionLevel2 -> ActivateAlarmState;
+    ActionLevel3 -> ActivateAlarmState;
+ 
+    // 2. ANA DÖNGÜ: ALARM BEKLEME
+    ActivateAlarmState -> CheckReset;
+ 
+    CheckReset -> CheckReset [label=" Hayır (Bekle)"];
+    CheckReset -> ResetSystem [label=" Evet"]; // <--- DÜZELTME 3: "Evet" etiketi eklendi.
+ 
+    ResetSystem -> Wait;
+}
